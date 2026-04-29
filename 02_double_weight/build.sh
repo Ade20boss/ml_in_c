@@ -1,7 +1,6 @@
 #!/bin/bash
 
-set -xe
+set -xe 
 
-gcc -Wall -Wextra -g or_gate.c -o orgate -lm
-
-./orgate
+gcc -Wall -Wextra -g full_gates.c -o full_gates -lm
+./full_gates

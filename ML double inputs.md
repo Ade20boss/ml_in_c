@@ -20,7 +20,7 @@
 
 ## 01 — Core idea
 
-I am building a machine learning engine in raw C — no NumPy, no PyTorch, no abstraction. The goal is to understand what those libraries are actually doing under the hood by implementing it yourself.
+I am building a machine learning engine in raw C — no NumPy, no PyTorch, no abstraction. The goal is to understand what those libraries are actually doing under the hood by implementing it myself.
 
 At its simplest, the model is a formula with adjustable numbers (parameters). You feed it input data, it produces an output, and you measure how wrong it is. Then you adjust the parameters to make it less wrong. Repeat until it stops being wrong. That is machine learning.
 

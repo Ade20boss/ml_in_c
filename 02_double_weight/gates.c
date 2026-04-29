@@ -3,25 +3,17 @@
 #include <time.h>
 #include <math.h>
 
-//OR GATE
-float or_training_set[][3] = { //Dataset(Description of how the model is supposed to behave - Following the or gate system)
-    {0, 0, 0},
-    {1, 0, 1},
-    {0, 1, 1},
-    {1, 1, 1},
-};
 
-
-//Getting the length of the array
-#define set_count (sizeof(or_training_set)/sizeof(or_training_set[0]))
 
 
 //Function to classify output of the linear equation. Forces
 //the output of the linear equation between 0.0 and 1.0
 float sigmoid(float x)
+
 {
     return 1.f/(1.f + expf(-x));
 }
+
 
 //Function to generate a random float for the weights and the bias
 float random_float()
@@ -35,17 +27,17 @@ float random_float()
 
 
 //COST FUNCTION - calculates how wrong the model is
-float cost(float w1, float w2, float b)
+float cost(float w1, float w2, float b, float training_set[][3], size_t set_count)
 {
     float error_result = 0.0f;
 
     //Calculate how wrong the model is for each input, adds the errors together
     for (size_t i = 0; i < set_count; i++)
     {
-        float x1 = or_training_set[i][0];
-        float x2 = or_training_set[i][1];
+        float x1 = training_set[i][0];
+        float x2 = training_set[i][1];
         float y = sigmoid((x1*w1) + (x2*w2) + b);
-        float d = y - or_training_set[i][2];
+        float d = y - training_set[i][2];
 
         error_result += d*d;
 
@@ -79,6 +71,17 @@ int classifier(float x1, float x2, float w1, float w2, float b)
 int main()
 {
 
+    float training_set[][3] = { //Dataset(Description of how the model is supposed to behave)
+        {0, 0, 0},
+        {1, 0, 1},
+        {0, 1, 1},
+        {1, 1, 1},
+    };
+
+    size_t length = sizeof(training_set)/sizeof(training_set[0]);
+
+    
+
     //seed rand to produce new numbers everytime the program runs
     srand(time(0));
 
@@ -96,11 +99,11 @@ int main()
     //toggle the weights and bias until model conforms with data
     for (size_t i = 0; i < 320000; i++)
     {
-        c = cost(w1, w2, b);
+        c = cost(w1, w2, b, training_set, length);
         //calculate numerical derivative for weights and bias and nudges them based on those derivatives
-        float dw1 = (cost(w1 + epsilon, w2, b) - c)/epsilon;
-        float dw2 = (cost(w1, w2 + epsilon, b) - c)/epsilon;
-        float db = (cost(w1, w2, b+epsilon) - c)/epsilon;
+        float dw1 = (cost(w1 + epsilon, w2, b, training_set, length) - c)/epsilon;
+        float dw2 = (cost(w1, w2 + epsilon, b, training_set, length) - c)/epsilon;
+        float db = (cost(w1, w2, b+epsilon, training_set, length) - c)/epsilon;
         w1 -= rate*dw1;
         w2 -= rate*dw2;
         b -= rate*db;
@@ -114,10 +117,10 @@ int main()
     printf("Trained Weight 1: %f, Trained Weight 2: %f, Trained Bias: %f,  Error_cost: %f\n", w1, w2, b, c);
 
     printf("\n");
-    for (size_t i = 0; i < set_count; i++)
+    for (size_t i = 0; i < length; i++)
     {
-        float x1 = or_training_set[i][0];
-        float x2 = or_training_set[i][1];
+        float x1 = training_set[i][0];
+        float x2 = training_set[i][1];
         printf("%f | %f = %d\n", x1, x2, classifier(x1, x2, w1, w2, b));
     }
 
