@@ -213,3 +213,37 @@ Same engine.
 Sigmoid is the only structural change.
 
 ---
+
+There's two things i missed and didn't explain what the derivative actually does for us. The derivative is actually crucial, as we know it is the slope of the graph(the result of the descent against the cost function) at a specific point - since we're using numerical derivatives, it gives us the slope of the graph between two points on the graph, but the distance between those two points is almost infinitesimal such that its regarded as the actual derivative. So this derivative is important for two things, **its sign and its magnitude**
+
+The sign on the derivatives tells us our position on the graph, and tells us which direction increases the cost function, the numerical derivative(slope) always points towards the increasing cost function, this is because it is literally gotten from subtracting the higher value from the lower value leaving the numerator as the sole dictator of the sign
+
+So in gradient descent, what we do is subtract the value of the derivative so we can force the cost function downhill
+
+**The magnitude:** This is equally important, it tells us to two important things:
+
+### Point 1: The Distance-to-Minimum Brake (Step Size)
+
+The magnitude acts as an auto-scaling scalar that enforces mathematical deceleration as a parameter approaches its optimal value.
+
+- **The Mechanism:** Your update rule is wnew​=w−(rate×dw). The learning rate is a static hyperparameter. The dynamic variable controlling the actual traversal distance is the magnitude of dw.
+    
+- **Far from Minimum (Steep Slope):** The error curve is steep, producing a large dw. Multiplying the rate by a large number yields a massive step. The algorithm aggressively clears distance across the error surface.
+    
+- **Close to Minimum (Flat Slope):** As the parameter nears the bottom of the convex error bowl, the slope inherently flattens. This produces a much smaller dw. Multiplying the rate by a shrinking number yields a shrinking step size.
+    
+- **The Result:** The magnitude provides an automatic, proportional braking system. Without it, a fixed-step approach would violently overshoot the minimum and oscillate infinitely. The magnitude allows the parameter to smoothly settle into the exact bottom of the curve.
+
+### Point 2: The Implicit Priority Filter (Parameter Sensitivity)
+
+In a multi-variable system, magnitude dynamically routes corrective "effort" to the parameters causing the most error, without relying on branching logic or altering the instruction pipeline.
+
+- **Instruction Execution:** The CPU blindly executes the exact same arithmetic instructions for every parameter on every loop. There are no conditional `if` statements to skip optimized parameters, and zero clock cycles are saved.
+    
+- **Data Mutation:** The prioritization happens entirely in the floating-point mutation.
+    
+    - A parameter causing high error has high sensitivity (large magnitude). The resulting arithmetic produces a totally new floating-point value, aggressively shifting the memory state.
+        
+    - A parameter already at equilibrium has low sensitivity. The resulting dw is microscopic.
+        
+- **The Result:** Subtracting a near-zero value (sometimes smaller than the machine epsilon limits of a 32-bit float) results in a mathematical no-op. The algorithm aggressively mutates the memory addresses of "bad" weights while mathematically locking the memory addresses of "good" weights. It isolates and fixes the active problems through pure arithmetic.

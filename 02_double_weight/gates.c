@@ -58,7 +58,7 @@ int classifier(float x1, float x2, float w1, float w2, float b)
         return 1;
     }
 
-    else 
+    else
     {
         return 0;
     }
@@ -80,7 +80,7 @@ int main()
 
     size_t length = sizeof(training_set)/sizeof(training_set[0]);
 
-    
+
 
     //seed rand to produce new numbers everytime the program runs
     srand(time(0));
@@ -90,8 +90,8 @@ int main()
     float w1 = random_float();
     float w2 = random_float();
     float b = random_float();
-    float epsilon = 1e-1;
-    float rate = 1e-1;
+    double epsilon = 1e-1;
+    double rate = 1e-1;
     float c;
 
 
@@ -111,7 +111,7 @@ int main()
         {
             printf("Training Weight 1: %f, Training Weight 2: %f, Training Bias: %f, Error_cost: %f\n", w1, w2, b, c);
         }
-        
+
     }
 
     printf("Trained Weight 1: %f, Trained Weight 2: %f, Trained Bias: %f,  Error_cost: %f\n", w1, w2, b, c);
@@ -128,6 +128,3 @@ int main()
     return 0;
 
 }
-
-
-
