@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <sys/types.h>
 #define KESTREL_CODE
 #include "kestrel.h"
 
@@ -15,8 +16,18 @@ typedef struct
     matrix layer2_outputs; // (1 × 1)  — one pair's final output (1 number)
 } Xor;
 
-float *forward_pass(Xor * xor)
+float cost(float output, float target)
 {
+    return;
+}
+
+
+float *forward_pass(Xor * xor, float x1, float x2)
+{
+    // set input values
+    MAT_POS(xor->layer1_inputs, 0, 0) = x1;
+    MAT_POS(xor->layer1_inputs, 0, 1) = x2;
+
     // layer1: (1×2) · (2×2) = (1×2), then add biases (2×1, broadcast over the row), then sigmoid
     matrix_dotproduct(xor->layer1_outputs, xor->layer1_inputs, xor->layer1_weights);
     matrix_sum_bias(xor->layer1_outputs, xor->layer1_biases);
@@ -27,32 +38,6 @@ float *forward_pass(Xor * xor)
     matrix_activate(xor->layer2_outputs);
     return xor->layer2_outputs.es;
 }
-
-float cost(Xor model, matrix inputs, matrix outputs)
-{
-    KESTREL_ASSERT(outputs.rows == inputs.rows);
-    KESTREL_ASSERT(model.layer2_outputs.rows == 1);
-    KESTREL_ASSERT(model.layer2_outputs.cols == outputs.cols);
-
-    float total_cost = 0.0f;
-    for (size_t i = 0; i < inputs.rows; i++)
-    {
-        matrix input = row_matricize(inputs, i);
-        matrix expected_output = row_matricize(outputs, i);
-        matrix_copy(model.layer1_inputs, input);
-
-        forward_pass(&model);
-
-        for (size_t j = 0; j < outputs.cols; j++)
-        {
-            float difference = MAT_POS(model.layer2_outputs, 0, j) - MAT_POS(expected_output, 0, j);
-            total_cost += difference * difference;
-        }
-    }
-    total_cost /= inputs.rows;
-    return total_cost;
-}
-
 
 int main(void)
 {

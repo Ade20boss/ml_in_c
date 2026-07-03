@@ -1,7 +1,7 @@
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <math.h>
 
 #define W1 0
 #define W2 1
@@ -20,7 +20,7 @@
 // in non-linear logic before passing it forward.
 float sigmoid(float x)
 {
-    return 1.f / (1.f + expf(-x));
+    return 1.f/(1.f + expf(-x));
 }
 
 
@@ -29,9 +29,10 @@ float random_float()
 {
     // Dividing the generated number by RAND_MAX forces the production of a
     // floating point number between 0 and 1.
-    return (float)rand() / (float)RAND_MAX;
+    return (float) rand() / (float)RAND_MAX;
     // RAND_MAX - Essentially the largest number that rand can produce though
 }
+
 
 
 // COST FUNCTION - calculates how wrong the model is
@@ -52,17 +53,18 @@ float cost(float *weights, float training_set[][3], size_t set_count)
         // This layer only focuses on solving a subset of the problem.
         //We apply the sigmoid squishification function because the subset of the problem
         //requires sigmoid so we can pass to the next layer
-        float h1 = sigmoid((x1 * weights[W1]) + (x2 * weights[W2]) + weights[B1]);
-        float h2 = sigmoid((x1 * weights[W3]) + (x2 * weights[W4]) + weights[B2]);
+        float h1 = sigmoid((x1*weights[W1]) + (x2*weights[W2]) + weights[B1]);
+        float h2 = sigmoid((x1*weights[W3]) + (x2*weights[W4]) + weights[B2]);
 
         // --- OUTPUT LAYER ---
         // We pass the squished results of the two hidden neurons into the output neuron.
         // It applies its own weights (W5, W6) and bias (B3) to those hidden results.
         // THIS is the only neuron that is actually compared against the training data to get the error.
-        float y = sigmoid((h1 * weights[W5]) + (h2 * weights[W6]) + weights[B3]);
+        float y = sigmoid((h1* weights[W5]) + (h2*weights[W6]) + weights[B3]);
         float d = y - training_set[i][2];
 
-        error_result += d * d;
+        error_result += d*d;
+
     }
 
     // This then averages it by dividing the accumulated error by the number of inputs
@@ -74,9 +76,9 @@ float cost(float *weights, float training_set[][3], size_t set_count)
 int classifier(float x1, float x2, float *weights)
 {
 
-    float h1 = sigmoid((x1 * weights[W1]) + (x2 * weights[W2]) + weights[B1]);
-    float h2 = sigmoid((x1 * weights[W3]) + (x2 * weights[W4]) + weights[B2]);
-    float classer = sigmoid((h1 * weights[W5]) + (h2 * weights[W6]) + weights[B3]);
+    float h1 = sigmoid((x1*weights[W1]) + (x2*weights[W2]) + weights[B1]);
+    float h2 = sigmoid((x1*weights[W3]) + (x2*weights[W4]) + weights[B2]);
+    float classer = sigmoid((h1* weights[W5]) + (h2*weights[W6]) + weights[B3]);
 
     if (classer >= 0.5)
     {
@@ -90,19 +92,22 @@ int classifier(float x1, float x2, float *weights)
 }
 
 
+
+
+
+
 // Main function
 int main()
 {
 
-    float training_set[][3] = {
-        // Dataset(Description of how the model is supposed to behave)
+    float training_set[][3] = { // Dataset(Description of how the model is supposed to behave)
         {0, 0, 0},
         {1, 0, 1},
         {0, 1, 1},
         {1, 1, 0},
     };
 
-    size_t length = sizeof(training_set) / sizeof(training_set[0]);
+    size_t length = sizeof(training_set)/sizeof(training_set[0]);
 
 
     // seed rand to produce new numbers everytime the program runs
@@ -123,7 +128,7 @@ int main()
         weights[i] = random_float();
     }
 
-#define WEIGHT_COUNT sizeof(weights) / sizeof(weights[0])
+    #define WEIGHT_COUNT sizeof(weights)/sizeof(weights[0])
 
 
     // Gradient descent: Continuously nudge the weights and bias to get derivatives and then continuously
@@ -146,7 +151,7 @@ int main()
             // 3. Calculate the derivative
             // Because the final cost evaluates the output neuron, the hidden layer weights
             // adjust themselves strictly to ensure the output layer accurately predicts.
-            float d = (cost(weights, training_set, length) - c) / epsilon;
+            float d =  (cost(weights, training_set, length) - c) / epsilon;
 
             // 4. Reassign the weight to its original value to wipe the epsilon nudge
             weights[j] = original;
@@ -156,41 +161,20 @@ int main()
         }
 
 
+
         if (i % 10000 == 0)
         {
-            printf("Training Weight 1: %f, Training Weight 2: %f, Training Bias 1: %f, Training Weight 3: %f, Training "
-                   "Weight 4: %f, Training Bias 2: %f,  Training Weight 5: %f, Training Weight 6: %f, Training Bias 3: "
-                   "%f, Error_cost: %f\n",
-                   weights[W1],
-                   weights[W2],
-                   weights[B1],
-                   weights[W3],
-                   weights[W4],
-                   weights[B2],
-                   weights[W5],
-                   weights[W6],
-                   weights[B3],
-                   c);
+            printf("Training Weight 1: %f, Training Weight 2: %f, Training Bias 1: %f, Training Weight 3: %f, Training Weight 4: %f, Training Bias 2: %f,  Training Weight 5: %f, Training Weight 6: %f, Training Bias 3: %f, Error_cost: %f\n", weights[W1], weights[W2], weights[B1], weights[W3], weights[W4], weights[B2], weights[W5], weights[W6], weights[B3], c);
         }
 
         if (c < 0.001)
         {
             break;
         }
+
     }
 
-    printf("Trained Weight 1: %f, Trained Weight 2: %f, Trained Bias 1: %f, Trained Weight 3: %f, Trained Weight 4: "
-           "%f, Trained Bias 2: %f,  Trained Weight 5: %f, Trained Weight 6: %f, Trained Bias 3: %f, Error_cost: %f\n",
-           weights[W1],
-           weights[W2],
-           weights[B1],
-           weights[W3],
-           weights[W4],
-           weights[B2],
-           weights[W5],
-           weights[W6],
-           weights[B3],
-           c);
+       printf("Trained Weight 1: %f, Trained Weight 2: %f, Trained Bias 1: %f, Trained Weight 3: %f, Trained Weight 4: %f, Trained Bias 2: %f,  Trained Weight 5: %f, Trained Weight 6: %f, Trained Bias 3: %f, Error_cost: %f\n", weights[W1], weights[W2], weights[B1], weights[W3], weights[W4], weights[B2], weights[W5], weights[W6], weights[B3], c);
 
     printf("\n");
 
@@ -214,8 +198,9 @@ int main()
     {
         float x1 = training_set[i][0];
         float x2 = training_set[i][1];
-        printf("%f | %f = %f\n", x1, x2, sigmoid((x1 * weights[W1]) + (x2 * weights[W2]) + weights[B1]));
+        printf("%f | %f = %f\n", x1, x2, sigmoid((x1*weights[W1]) + (x2*weights[W2]) + weights[B1]));
     }
+
 
 
     printf("\n");
@@ -227,9 +212,12 @@ int main()
     {
         float x1 = training_set[i][0];
         float x2 = training_set[i][1];
-        printf("%f | %f = %f\n", x1, x2, sigmoid((x1 * weights[W3]) + (x2 * weights[W4]) + weights[B2]));
+        printf("%f | %f = %f\n", x1, x2, sigmoid((x1*weights[W3]) + (x2*weights[W4]) + weights[B2]));
     }
 
 
+
+
     return 0;
+
 }

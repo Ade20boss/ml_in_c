@@ -46,9 +46,6 @@ void matrix_randomize(matrix matrix, float low, float high);
 void matrix_fill(matrix matrix, float value);
 void matrix_dotproduct(matrix destination, matrix source_a, matrix source_b);
 void matrix_activate(matrix matrix);
-matrix row_matricize(matrix matrix, size_t row_num);
-matrix column_matricize(matrix matrix, size_t col_num);
-void matrix_copy(matrix destination, matrix source);
 void matrix_sum(matrix destination, matrix source);
 void print_matrix(matrix matrix, const char *name);
 float rand_float(void);
@@ -74,7 +71,6 @@ uint8_t *arena_init(Chunk_memory *arena)
     }
     return arena->data;
 }
-
 
 void *custom_alloc(size_t size, Chunk_memory *arena)
 {
@@ -124,7 +120,6 @@ float rand_float()
     return (float)rand() / (float)RAND_MAX;
 }
 
-
 matrix matrix_allocate(Chunk_memory *arena, size_t rows, size_t cols)
 {
     matrix m;
@@ -135,7 +130,6 @@ matrix matrix_allocate(Chunk_memory *arena, size_t rows, size_t cols)
     KESTREL_ASSERT(m.es != NULL);
     return m;
 }
-
 
 void matrix_fill(matrix matrix, float value)
 {
@@ -187,25 +181,6 @@ void matrix_dotproduct(matrix destination, matrix source_a, matrix source_b)
     }
 }
 
-
-matrix row_matricize(matrix m, size_t row_num)
-{
-    KESTREL_ASSERT(row_num < m.rows);
-    return (matrix){.rows = 1, .cols = m.cols, .stride = m.stride, .es = &MAT_POS(m, row_num, 0)};
-}
-
-
-void matrix_copy(matrix destination, matrix source)
-{
-    KESTREL_ASSERT(destination.rows == source.rows && destination.cols == source.cols);
-    for (size_t i = 0; i < destination.rows; i++)
-    {
-        for (size_t j = 0; j < destination.cols; j++)
-        {
-            MAT_POS(destination, i, j) = MAT_POS(source, i, j);
-        }
-    }
-}
 
 void matrix_sum_bias(matrix destination, matrix source)
 {
