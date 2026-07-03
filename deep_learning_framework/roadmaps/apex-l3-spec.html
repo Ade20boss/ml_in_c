@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>APEX L3 — Master Architecture Spec</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #07090C;
+    --bg2:       #0D1014;
+    --bg3:       #121620;
+    --rule:      rgba(255,255,255,0.07);
+    --rule-mid:  rgba(255,255,255,0.12);
+    --text:      #E8EDF2;
+    --muted:     #7A8899;
+    --dim:       #3E4E62;
+    --amber:     #FFB23E;
+    --amber-dim: rgba(255,178,62,0.14);
+    --green:     #3DDC84;
+    --green-dim: rgba(61,220,132,0.12);
+    --red:       #FF5C5C;
+    --red-dim:   rgba(255,92,92,0.12);
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Space Grotesk', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  #book-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.6;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 2rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--amber);
+    text-transform: uppercase;
+    margin-bottom: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .eyebrow::before, .eyebrow::after {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: var(--amber);
+    opacity: 0.5;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 0.2em;
+  }
+
+  h1 span {
+    color: var(--amber);
+    font-weight: 600;
+  }
+
+  h1 sup {
+    font-size: 0.32em;
+    font-weight: 500;
+    color: var(--muted);
+    vertical-align: super;
+    letter-spacing: 0.1em;
+    margin-left: 0.15em;
+  }
+
+  .hero-sub {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 54ch;
+    margin: 1.5rem auto 0;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat { text-align: center; }
+
+  .hero-stat-val {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--text);
+    display: block;
+  }
+
+  .hero-stat-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    z-index: 2;
+    animation: float 2.5s ease-in-out infinite;
+  }
+
+  .scroll-hint svg { opacity: 0.4; }
+
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ── LAYOUT ───────────────────────────────────────────── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── SECTIONS ─────────────────────────────────────────── */
+  .section {
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .section-title em {
+    font-style: normal;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* ── RULE DIVIDER ─────────────────────────────────────── */
+  .rule { width: 100%; height: 1px; background: var(--rule); margin: 2.5rem 0; }
+
+  /* ── SUBSECTIONS ──────────────────────────────────────── */
+  .subsection { margin-bottom: 3rem; }
+  .subsection:last-child { margin-bottom: 0; }
+
+  .subsection-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .subsection-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .subsection-title {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  p { color: var(--muted); line-height: 1.75; margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+  strong { color: var(--text); font-weight: 500; }
+
+  /* ── STRUCTS ──────────────────────────────────────────── */
+  .struct-card {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .struct-header {
+    background: var(--bg3);
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .struct-header-kw   { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+  .struct-header-name { font-family: var(--mono); font-size: 12px; color: var(--green); font-weight: 500; }
+  .struct-header-tag  { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 0.08em; }
+
+  .struct-fields { display: flex; flex-direction: column; }
+
+  .struct-field {
+    display: grid;
+    grid-template-columns: 90px 150px 1fr;
+    align-items: baseline;
+    padding: 0.6rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    gap: 1rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    transition: background 0.15s;
+  }
+
+  .struct-field:last-child { border-bottom: none; }
+  .struct-field:hover { background: rgba(255,255,255,0.02); }
+
+  .sf-type    { color: var(--green); }
+  .sf-name    { color: var(--text); }
+  .sf-comment { color: var(--muted); font-size: 11.5px; font-style: italic; }
+
+  /* ── INLINE CODE ──────────────────────────────────────── */
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--bg3);
+    border: 1px solid var(--rule-mid);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--green);
+  }
+
+  /* ── INFO CARD ────────────────────────────────────────── */
+  .info-card {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .info-card-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  .info-card-icon.amber { background: var(--amber-dim); }
+  .info-card-icon.green { background: var(--green-dim); }
+  .info-card-icon.red   { background: var(--red-dim); }
+
+  .info-card-icon svg { width: 14px; height: 14px; }
+  .info-card-icon.amber svg { stroke: var(--amber); }
+  .info-card-icon.green svg { stroke: var(--green); }
+  .info-card-icon.red   svg { stroke: var(--red); }
+
+  .info-card-body { flex: 1; }
+  .info-card-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 0.25rem; }
+  .info-card-body p { font-size: 13.5px; margin: 0; color: var(--muted); }
+
+  /* ── HIGHLIGHT STRIP ──────────────────────────────────── */
+  .highlight-strip {
+    border-left: 2px solid var(--amber);
+    padding-left: 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .highlight-strip.green { border-left-color: var(--green); }
+  .highlight-strip.red   { border-left-color: var(--red); }
+
+  /* ── THREAD DIAGRAM ───────────────────────────────────── */
+  .thread-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    padding: 1.75rem 2rem;
+    margin: 2rem 0;
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    align-items: stretch;
+  }
+
+  .thread-col {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .thread-col-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin-bottom: 0.4rem;
+  }
+
+  .thread-col-label.green { color: var(--green); }
+
+  .thread-box {
+    border: 1px solid var(--rule-mid);
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    font-size: 12.5px;
+    color: var(--muted);
+    background: var(--bg3);
+  }
+
+  .thread-box strong { color: var(--text); font-size: 12.5px; }
+
+  .thread-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .thread-arrow svg { width: 28px; height: 28px; stroke: var(--dim); }
+
+  .thread-arrow-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: center;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+
+  /* ── LOB DEPTH MOCKUP ─────────────────────────────────── */
+  .depth-mockup {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .depth-header {
+    background: var(--bg3);
+    border-bottom: 1px solid var(--rule);
+    padding: 0.5rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .depth-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rule-mid); }
+
+  .depth-title {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .depth-body { padding: 1.25rem 1.5rem; }
+
+  .depth-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 90px;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    padding: 3px 0;
+  }
+
+  .depth-row.ask .depth-price { color: var(--red); }
+  .depth-row.bid .depth-price { color: var(--green); }
+
+  .depth-bar-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--bg3);
+    overflow: hidden;
+    display: flex;
+  }
+
+  .depth-bar-fill { height: 100%; border-radius: 3px; }
+  .depth-row.ask .depth-bar-fill { background: var(--red); margin-left: auto; }
+  .depth-row.bid .depth-bar-fill { background: var(--green); }
+
+  .depth-qty { color: var(--muted); text-align: right; }
+  .depth-mid {
+    text-align: center;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dim);
+    padding: 6px 0;
+    border-top: 1px dashed var(--rule);
+    border-bottom: 1px dashed var(--rule);
+    margin: 6px 0;
+  }
+
+  /* ── TELEMETRY ────────────────────────────────────────── */
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .telemetry-cell {
+    background: var(--bg2);
+    padding: 1.25rem 1.5rem;
+  }
+
+  .telemetry-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .telemetry-val {
+    font-family: var(--mono);
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .telemetry-val.green { color: var(--green); }
+  .telemetry-val.amber { color: var(--amber); }
+
+  .telemetry-sub {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 4px;
+  }
+
+  /* ── FEATURE TABLE ────────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 2rem;
+  }
+
+  .feature-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 1fr;
+    background: var(--bg);
+    gap: 0;
+  }
+
+  .feature-row.header { background: var(--bg3); }
+
+  .feature-cell {
+    padding: 1rem 1.25rem;
+    border-right: 1px solid var(--rule);
+    font-size: 13.5px;
+  }
+
+  .feature-cell:last-child { border-right: none; }
+
+  .feature-row.header .feature-cell {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.75rem 1.25rem;
+  }
+
+  .feature-name   { font-weight: 500; color: var(--text); }
+  .feature-does   { color: var(--muted); }
+  .feature-sells  { color: var(--muted); }
+  .feature-does strong, .feature-sells strong { color: var(--green); }
+
+  /* ── OWNER PILLS ──────────────────────────────────────── */
+  .owner-pills {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .owner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+
+  .owner-pill.dan  { border-color: rgba(255,178,62,0.3); color: var(--amber); background: rgba(255,178,62,0.07); }
+  .owner-pill.hab  { border-color: rgba(61,220,132,0.3); color: var(--green); background: rgba(61,220,132,0.07); }
+  .owner-pill.usa  { border-color: rgba(255,92,92,0.3);  color: var(--red);   background: rgba(255,92,92,0.07); }
+
+  .owner-dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .dan .owner-dot { background: var(--amber); }
+  .hab .owner-dot { background: var(--green); }
+  .usa .owner-dot { background: var(--red); }
+
+  /* ── SPRINT ───────────────────────────────────────────── */
+  .sprint-grid { margin-top: 2rem; }
+
+  .sprint-week {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 0;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+
+  .sprint-week-label {
+    background: var(--bg3);
+    border-right: 1px solid var(--rule);
+    padding: 1.25rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+  }
+
+  .sprint-week-num {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--amber);
+    line-height: 1;
+  }
+
+  .sprint-week-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    text-align: center;
+  }
+
+  .sprint-tasks {
+    padding: 1.25rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .sprint-person { display: flex; flex-direction: column; gap: 6px; }
+
+  .sprint-person-name {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  .sprint-person-name.dan  { background: rgba(255,178,62,0.15); color: var(--amber); }
+  .sprint-person-name.hab  { background: rgba(61,220,132,0.12); color: var(--green); }
+  .sprint-person-name.usa  { background: rgba(255,92,92,0.12);  color: var(--red); }
+
+  .sprint-task { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  .sprint-task-empty {
+    font-size: 12.5px;
+    color: var(--dim);
+    font-style: italic;
+  }
+
+  /* ── FOOTER ───────────────────────────────────────────── */
+  .footer { padding: 3rem 0 4rem; text-align: center; }
+
+  .footer-wordmark {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .footer-wordmark span { color: var(--amber); }
+
+  /* ── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .sprint-tasks  { grid-template-columns: 1fr; }
+    .feature-row   { grid-template-columns: 1fr; }
+    .struct-field  { grid-template-columns: 80px 1fr; }
+    .sf-comment    { display: none; }
+    .telemetry-grid{ grid-template-columns: 1fr; }
+    .thread-diagram{ grid-template-columns: 1fr; }
+    .thread-arrow  { transform: rotate(90deg); padding: 0.5rem 0; }
+    .thread-arrow-label { writing-mode: horizontal-tb; }
+    h1 { font-size: 2.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ──────────────────────────────────────────────── -->
+<section class="hero">
+  <canvas id="book-canvas"></canvas>
+  <div class="hero-content">
+    <div class="eyebrow">Limit Order Book Matching Engine</div>
+    <h1>APEX<span> L3</span></h1>
+    <p class="hero-sub">
+      A deterministic, microsecond-latency limit order book matching engine,
+      driven by autonomous AI market makers and visualized through a
+      hardware-accelerated, high-frequency web terminal.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="hero-stat-val">0.015ms</span>
+        <span class="hero-stat-label">Match Latency</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">32B</span>
+        <span class="hero-stat-label">Order Struct</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">SPSC</span>
+        <span class="hero-stat-label">Lock-Free Queue</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">100K/s</span>
+        <span class="hero-stat-label">Order Throughput</span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <svg width="14" height="20" viewBox="0 0 14 20" fill="none" stroke="currentColor" stroke-width="1.2">
+      <rect x="1" y="1" width="12" height="18" rx="6"/>
+      <line x1="7" y1="5" x2="7" y2="9"/>
+    </svg>
+    Scroll
+  </div>
+</section>
+
+<!-- ── WIRE PROTOCOL ──────────────────────────────────────── -->
+<div class="page">
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Wire Protocol <em>— The Single Source of Truth</em></h2>
+  </div>
+
+  <p>
+    Before any logic is written, the engine, the bots, and the UI agree on one binary format.
+    <strong>No JSON parsing in the critical path.</strong> Every struct uses
+    <code>__attribute__((packed))</code> to remove compiler-dependent padding, with manual
+    padding added to hit exact 32-byte cache-line alignment.
+  </p>
+
+  <!-- Packet Header -->
+  <div class="subsection-label">Struct 01 — Connection Header</div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">PacketHeader</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 8 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">magic</span>
+        <span class="sf-comment">// 0xCAFEBABE — packet integrity guard</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint16_t</span>
+        <span class="sf-name">version</span>
+        <span class="sf-comment">// protocol version</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint16_t</span>
+        <span class="sf-name">count</span>
+        <span class="sf-comment">// number of Order structs following</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Order -->
+  <div class="subsection-label">Struct 02 — Inbound Order Payload</div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">Order</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 32 bytes exactly</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">id</span>
+        <span class="sf-comment">// unique order identifier</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint64_t</span>
+        <span class="sf-name">price</span>
+        <span class="sf-comment">// fixed-point integer — $10.50 = 1050</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint64_t</span>
+        <span class="sf-name">quantity</span>
+        <span class="sf-comment">// number of units</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">side</span>
+        <span class="sf-comment">// 0 = Bid (Buy) · 1 = Ask (Sell)</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">type</span>
+        <span class="sf-comment">// 0 = Limit · 1 = Market</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">padding[10]</span>
+        <span class="sf-comment">// pad to 32 bytes for L1 cache alignment</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Execution Record -->
+  <div class="subsection-label">Struct 03 — Outbound Execution Record</div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">ExecutionRecord</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 32 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">maker_id</span>
+        <span class="sf-comment">// the order resting in the book</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">taker_id</span>
+        <span class="sf-comment">// the incoming order that matched</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint64_t</span>
+        <span class="sf-name">exec_price</span>
+        <span class="sf-comment">// price at which the trade executed</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint64_t</span>
+        <span class="sf-name">exec_qty</span>
+        <span class="sf-comment">// quantity exchanged</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint64_t</span>
+        <span class="sf-name">timestamp</span>
+        <span class="sf-comment">// epoch time in nanoseconds</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-icon amber">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 9v4M12 17h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      </svg>
+    </div>
+    <div class="info-card-body">
+      <div class="info-card-title">32 bytes is the contract, not a coincidence</div>
+      <p>Order and ExecutionRecord are both exactly 32 bytes — one L1 cache line. The matching thread can load a full order with a single cache fetch. Any future field addition must come out of the padding budget, not extend the struct.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CORE ENGINE ─────────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Core Engine Subsystems <em>— Daniel's Domain</em></h2>
+  </div>
+
+  <p>
+    The C backend is strictly split into two threads to guarantee determinism. Network I/O and
+    matching logic must never share a lock, because a lock is a latency spike waiting to happen.
+  </p>
+
+  <!-- Thread split diagram -->
+  <div class="thread-diagram">
+    <div class="thread-col">
+      <div class="thread-col-label">Network Thread</div>
+      <div class="thread-box"><strong>epoll</strong> — handles thousands of concurrent TCP connections from AI bots</div>
+      <div class="thread-box">Reads binary <code>PacketHeader</code>, loops <code>count</code> times, extracts <code>Order</code> structs</div>
+      <div class="thread-box">Never touches matching logic — pure I/O</div>
+    </div>
+    <div class="thread-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M13 6l6 6-6 6"/>
+      </svg>
+      <span class="thread-arrow-label">SPSC ring buffer</span>
+    </div>
+    <div class="thread-col">
+      <div class="thread-col-label green">Matching Thread</div>
+      <div class="thread-box">Pinned to a single CPU core via <code>pthread_setaffinity_np</code></div>
+      <div class="thread-box">Polls the lock-free ring buffer continuously</div>
+      <div class="thread-box">Processes each <code>Order</code> through the Limit Order Book</div>
+    </div>
+  </div>
+
+  <!-- Network Thread -->
+  <div class="rule"></div>
+  <div class="subsection">
+    <div class="subsection-label">Subsystem A</div>
+    <div class="subsection-title">Network Thread — I/O</div>
+    <p>
+      Built on <code>epoll</code> to multiplex thousands of TCP connections from AI market-making
+      bots on a single thread. Its only job is parsing: read the <code>PacketHeader</code>,
+      iterate <code>count</code> times, extract each <code>Order</code> struct, and push it into
+      the ring buffer.
+    </p>
+
+    <div class="highlight-strip">
+      <strong>Handoff, not processing.</strong> The network thread is deliberately dumb. Any
+      logic placed here — validation beyond struct bounds, business rules, anything — adds
+      latency variance to a thread that exists purely to move bytes.
+    </div>
+  </div>
+
+  <!-- Matching Thread -->
+  <div class="rule"></div>
+  <div class="subsection">
+    <div class="subsection-label">Subsystem B — The Critical Path</div>
+    <div class="subsection-title">Matching Thread — Execution</div>
+    <p>
+      Pinned to one CPU core so the OS scheduler never migrates it mid-burst — migration means
+      cold caches, and cold caches mean latency spikes. It polls the ring buffer in a tight loop
+      and processes each order through the Limit Order Book (LOB).
+    </p>
+
+    <div class="subsection-title" style="margin-top: 1.5rem; font-size: 0.95rem;">The LOB data structure</div>
+    <p>
+      <strong>Price levels</strong> are stored in a hash map (or flat array if the price range
+      is constrained), mapping each price to a <code>PriceLevel</code> struct. Each
+      <code>PriceLevel</code> holds a <strong>doubly-linked list</strong> of active orders,
+      preserving <strong>price-time priority</strong> — first in, first out at that price.
+    </p>
+
+    <div class="info-card">
+      <div class="info-card-icon red">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+        </svg>
+      </div>
+      <div class="info-card-body">
+        <div class="info-card-title"><code>malloc</code> is forbidden on this thread</div>
+        <p>A memory arena is initialized once at startup via <code>mmap</code>. Adding an order bumps a pointer; matching or canceling an order returns its slot to a custom free list. Calling <code>malloc</code> or <code>free</code> in the matching thread reintroduces unpredictable allocator latency — the exact thing the arena exists to eliminate.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── MARKET SIMULATION ───────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Market Simulation <em>— Habeeb's Domain</em></h2>
+  </div>
+
+  <p>An exchange with no order flow is a demo of an empty room. The liquidity generators exist to make the book look — and behave — like a real market.</p>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem A</div>
+    <div class="subsection-title">Liquidity Generators</div>
+    <p>
+      Python or C daemons running locally hold persistent TCP/WebSocket connections to Daniel's
+      network thread, generating valid binary packets in the agreed <code>Order</code> format.
+    </p>
+
+    <p>
+      Rather than emitting random noise, the bots run a <strong>reinforcement learning</strong>
+      policy (Kestrel/RL) that reads the live <code>ExecutionRecord</code> stream as its
+      observation space. The objective: maintain a <strong>tight spread</strong> — the gap
+      between the best bid and best ask — by continuously placing and canceling thousands of
+      limit orders per second.
+    </p>
+
+    <div class="highlight-strip green">
+      This is the same behavior real market-making desks exhibit: constant quote refresh,
+      inventory management, and spread tightening in response to fill pressure. The bots are
+      not decoration — they are the load.
+    </div>
+  </div>
+</section>
+
+<!-- ── APEX TERMINAL ───────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Apex Terminal <em>— Usaamah's Domain</em></h2>
+  </div>
+
+  <p>
+    A standard SaaS dashboard cannot survive this workload. 10,000 DOM updates per second will
+    crash Chrome instantly — the terminal must be built like a trading floor, not a web app.
+  </p>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem A</div>
+    <div class="subsection-title">Render Engine</div>
+    <p>
+      A Next.js shell wraps a core visualization surface drawn with <strong>HTML5 Canvas or
+      WebGL</strong> — never the DOM for high-frequency elements. A WebSocket connection receives
+      raw <code>ExecutionRecord</code> arrays as binary frames, parsed directly with
+      <code>DataView</code> and typed arrays (<code>Uint8Array</code>) to extract integers
+      without any JSON deserialization step.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem B</div>
+    <div class="subsection-title">Visual Components</div>
+
+    <div class="highlight-strip">
+      <strong>Order Book Depth.</strong> A real-time, bidirectional bar chart: resting bids in
+      green extending one direction, resting asks in red extending the other, meeting at the
+      mid-price.
+    </div>
+
+    <div class="depth-mockup">
+      <div class="depth-header">
+        <div class="depth-dot"></div><div class="depth-dot"></div><div class="depth-dot"></div>
+        <div class="depth-title">DEPTH OF MARKET · LIVE</div>
+      </div>
+      <div class="depth-body">
+        <div class="depth-row ask">
+          <span class="depth-price">102.40</span>
+          <div class="depth-bar-track"><div class="depth-bar-fill" style="width: 35%;"></div></div>
+          <span class="depth-qty">1,240</span>
+        </div>
+        <div class="depth-row ask">
+          <span class="depth-price">102.35</span>
+          <div class="depth-bar-track"><div class="depth-bar-fill" style="width: 55%;"></div></div>
+          <span class="depth-qty">2,015</span>
+        </div>
+        <div class="depth-row ask">
+          <span class="depth-price">102.30</span>
+          <div class="depth-bar-track"><div class="depth-bar-fill" style="width: 78%;"></div></div>
+          <span class="depth-qty">3,440</span>
+        </div>
+        <div class="depth-mid">Mid 102.275 · Spread 0.05</div>
+        <div class="depth-row bid">
+          <span class="depth-price">102.25</span>
+          <div class="depth-bar-track"><div class="depth-bar-fill" style="width: 80%;"></div></div>
+          <span class="depth-qty">3,560</span>
+        </div>
+        <div class="depth-row bid">
+          <span class="depth-price">102.20</span>
+          <div class="depth-bar-track"><div class="depth-bar-fill" style="width: 50%;"></div></div>
+          <span class="depth-qty">2,180</span>
+        </div>
+        <div class="depth-row bid">
+          <span class="depth-price">102.15</span>
+          <div class="depth-bar-track"><div class="depth-bar-fill" style="width: 30%;"></div></div>
+          <span class="depth-qty">1,090</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight-strip green">
+      <strong>The Tape.</strong> A hyper-fast scrolling list of executed trades, driven directly
+      by incoming <code>ExecutionRecord</code> frames — every fill the matching engine produces
+      appears here within the same frame it was rendered on the depth chart.
+    </div>
+
+    <div style="margin-top: 1rem;"></div>
+
+    <p><strong>Telemetry Dashboard.</strong> Live metrics streamed straight from the C backend, with no aggregation layer in between:</p>
+
+    <div class="telemetry-grid">
+      <div class="telemetry-cell">
+        <div class="telemetry-label">Requests / sec</div>
+        <div class="telemetry-val green">84,210</div>
+        <div class="telemetry-sub">live order flow</div>
+      </div>
+      <div class="telemetry-cell">
+        <div class="telemetry-label">Matching latency</div>
+        <div class="telemetry-val amber">0.015 ms</div>
+        <div class="telemetry-sub">p50, matching thread</div>
+      </div>
+      <div class="telemetry-cell">
+        <div class="telemetry-label">Arena utilization</div>
+        <div class="telemetry-val">12 / 500 MB</div>
+        <div class="telemetry-sub">bump-allocated</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SALES MECHANICS ─────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Sales Mechanics <em>— Interactive Demo Triggers</em></h2>
+  </div>
+
+  <p>Two UI controls built specifically to be used live, on calls, to make a latency claim impossible to dismiss as marketing.</p>
+
+  <div class="feature-grid">
+    <div class="feature-row header">
+      <div class="feature-cell">Feature</div>
+      <div class="feature-cell">What it does</div>
+      <div class="feature-cell">Why it closes</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-cell"><span class="feature-name">The Chaos Slider</span></div>
+      <div class="feature-cell feature-does">
+        A slider tied to Habeeb's bot farm scales order generation from <strong>100/sec to
+        100,000/sec</strong> live, on screen, during the call.
+      </div>
+      <div class="feature-cell feature-sells">
+        The client watches the <strong>latency counter hold steady</strong> while throughput
+        jumps three orders of magnitude. That stability under load is the entire pitch —
+        no deck slide communicates it as well as watching it not move.
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-cell"><span class="feature-name">The Latency Proof</span></div>
+      <div class="feature-cell feature-does">
+        The UI permanently displays backend execution time — <strong>microseconds</strong>,
+        not milliseconds — front and center, never hidden in a debug panel.
+      </div>
+      <div class="feature-cell feature-sells">
+        Most web agencies cannot show this number because their stack cannot produce it.
+        Displaying it openly creates an <strong>undeniable technical gap</strong> between
+        this infrastructure and a standard SaaS build.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SPRINT SCHEDULE ─────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">4-Week Sprint Schedule</h2>
+  </div>
+
+  <div class="owner-pills">
+    <span class="owner-pill dan"><span class="owner-dot"></span>Daniel — C / Systems</span>
+    <span class="owner-pill hab"><span class="owner-dot"></span>Habeeb — AI / Bots</span>
+    <span class="owner-pill usa"><span class="owner-dot"></span>Usaamah — WebGL / UI</span>
+  </div>
+
+  <div class="sprint-grid">
+
+    <div class="sprint-week">
+      <div class="sprint-week-label">
+        <span class="sprint-week-num">01</span>
+        <span class="sprint-week-tag">Scaffolding</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-person">
+          <span class="sprint-person-name dan">Daniel</span>
+          <span class="sprint-task">Build the memory arena and define the wire structs. Write the basic doubly-linked list for the LOB.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name hab">Habeeb</span>
+          <span class="sprint-task">Build the packet generator to send mock <code>PacketHeader</code> and <code>Order</code> bytes via TCP.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name usa">Usaamah</span>
+          <span class="sprint-task">Build the Next.js shell, dark-mode theme, and static Canvas layout.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint-week">
+      <div class="sprint-week-label">
+        <span class="sprint-week-num">02</span>
+        <span class="sprint-week-tag">Core</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-person">
+          <span class="sprint-person-name dan">Daniel</span>
+          <span class="sprint-task">Implement the lock-free SPSC queue. Connect the network thread to the matching thread.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name hab">Habeeb</span>
+          <span class="sprint-task">Train baseline RL model to manage inventory and maintain a market spread.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name usa">Usaamah</span>
+          <span class="sprint-task">Connect WebSockets. Render the depth-of-market bars using mock data.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint-week">
+      <div class="sprint-week-label">
+        <span class="sprint-week-num">03</span>
+        <span class="sprint-week-tag">Integration</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-person">
+          <span class="sprint-person-name dan">Daniel</span>
+          <span class="sprint-task">Process Habeeb's live TCP traffic. Broadcast ExecutionRecords back out.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name hab">Habeeb</span>
+          <span class="sprint-task">Connect bots to Daniel's live engine. Begin the dynamic trading loop.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name usa">Usaamah</span>
+          <span class="sprint-task">Read live binary data from Daniel's engine. Optimize Canvas redraw rates.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sprint-week">
+      <div class="sprint-week-label">
+        <span class="sprint-week-num">04</span>
+        <span class="sprint-week-tag">Flex</span>
+      </div>
+      <div class="sprint-tasks">
+        <div class="sprint-person">
+          <span class="sprint-person-name dan">Daniel</span>
+          <span class="sprint-task">Optimize for cache misses with <code>perf</code>. Implement CPU core pinning.</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name hab">Habeeb</span>
+          <span class="sprint-task-empty">— not specified in source spec —</span>
+        </div>
+        <div class="sprint-person">
+          <span class="sprint-person-name usa">Usaamah</span>
+          <span class="sprint-task-empty">— not specified in source spec —</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</div><!-- /page -->
+
+<!-- ── FOOTER ──────────────────────────────────────────────── -->
+<div class="page">
+<div class="footer">
+  <div class="footer-wordmark">
+    <span>APEX L3</span> · Master Architecture Spec · v1.0
+  </div>
+</div>
+</div>
+
+<!-- ── HERO ORDER BOOK ANIMATION ──────────────────────────── -->
+<script>
+(function () {
+  const canvas = document.getElementById('book-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const LEVELS = 14; // levels per side
+  let bids = [];
+  let asks = [];
+  let ticks = [];
+  let flashTimer = 0;
+  let animT = 0;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function rng(a, b) { return a + Math.random() * (b - a); }
+
+  function initBook() {
+    bids = [];
+    asks = [];
+    for (let i = 0; i < LEVELS; i++) {
+      bids.push({ qty: rng(0.15, 1), target: rng(0.15, 1) });
+      asks.push({ qty: rng(0.15, 1), target: rng(0.15, 1) });
+    }
+  }
+
+  function jitterBook() {
+    const arr = Math.random() < 0.5 ? bids : asks;
+    const idx = Math.floor(Math.random() * arr.length);
+    arr[idx].target = rng(0.1, 1);
+  }
+
+  function spawnExecution() {
+    const side = Math.random() < 0.5 ? 'bid' : 'ask';
+    const idx  = Math.floor(Math.random() * 5); // near top of book
+    ticks.push({ side, idx, t: 0 });
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    animT += 0.016;
+
+    const midY     = H * 0.5;
+    const rowH     = Math.min(22, (H * 0.42) / LEVELS);
+    const maxBar   = W * 0.22;
+    const gap      = W * 0.10; // gap from center for label space
+    const cx       = W * 0.5;
+
+    // Smoothly approach target sizes
+    for (const lvl of bids) lvl.qty += (lvl.target - lvl.qty) * 0.04;
+    for (const lvl of asks) lvl.qty += (lvl.target - lvl.qty) * 0.04;
+
+    // Occasionally jitter a level
+    if (Math.random() < 0.04) jitterBook();
+
+    // Occasionally spawn an execution flash
+    flashTimer += 0.016;
+    if (flashTimer > 0.35) {
+      flashTimer = 0;
+      if (Math.random() < 0.7) spawnExecution();
+    }
+
+    // Draw bid levels (below mid, growing downward, bars extend left from center toward edges? -> extend outward)
+    for (let i = 0; i < LEVELS; i++) {
+      const y = midY + 10 + i * rowH;
+      if (y > H) break;
+      const w = bids[i].qty * maxBar;
+      const alpha = 0.10 + (1 - i / LEVELS) * 0.10;
+      ctx.fillStyle = `rgba(61,220,132,${alpha})`;
+      // extend from gap toward left edge
+      ctx.fillRect(cx - gap - w, y, w, rowH * 0.6);
+    }
+
+    // Draw ask levels (above mid, growing upward)
+    for (let i = 0; i < LEVELS; i++) {
+      const y = midY - 10 - i * rowH;
+      if (y < 0) break;
+      const w = asks[i].qty * maxBar;
+      const alpha = 0.10 + (1 - i / LEVELS) * 0.10;
+      ctx.fillStyle = `rgba(255,92,92,${alpha})`;
+      // extend from gap toward right edge
+      ctx.fillRect(cx + gap, y - rowH * 0.6, w, rowH * 0.6);
+    }
+
+    // Mirror on the other side for symmetry (subtle, lower alpha)
+    for (let i = 0; i < LEVELS; i++) {
+      const y = midY + 10 + i * rowH;
+      if (y > H) break;
+      const w = bids[i].qty * maxBar * 0.5;
+      ctx.fillStyle = `rgba(61,220,132,0.04)`;
+      ctx.fillRect(cx + gap, y, w, rowH * 0.6);
+    }
+    for (let i = 0; i < LEVELS; i++) {
+      const y = midY - 10 - i * rowH;
+      if (y < 0) break;
+      const w = asks[i].qty * maxBar * 0.5;
+      ctx.fillStyle = `rgba(255,92,92,0.04)`;
+      ctx.fillRect(cx - gap - w, y - rowH * 0.6, w, rowH * 0.6);
+    }
+
+    // Mid line
+    ctx.beginPath();
+    ctx.moveTo(0, midY);
+    ctx.lineTo(W, midY);
+    ctx.strokeStyle = 'rgba(255,178,62,0.15)';
+    ctx.lineWidth   = 0.6;
+    ctx.setLineDash([4, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Execution ticks — bright flash dots that fade
+    ticks = ticks.filter(t => t.t < 1);
+    for (const t of ticks) {
+      t.t += 0.05;
+      const rowH2 = rowH;
+      const y = t.side === 'bid'
+        ? midY + 10 + t.idx * rowH2 + rowH2 * 0.3
+        : midY - 10 - t.idx * rowH2 - rowH2 * 0.3;
+      const x = cx + (t.side === 'bid' ? -gap - 6 : gap + 6) * (t.side === 'bid' ? 1 : 1);
+      const px = t.side === 'bid' ? cx - gap : cx + gap;
+      const r = (1 - t.t) * 4 + 1;
+      const alpha = (1 - t.t) * 0.9;
+      ctx.beginPath();
+      ctx.arc(px, y, r * 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = t.side === 'bid'
+        ? `rgba(61,220,132,${alpha})`
+        : `rgba(255,92,92,${alpha})`;
+      ctx.fill();
+    }
+
+    // Faint vertical scanline drifting (latency sweep feel)
+    const sweepX = (Math.sin(animT * 0.25) * 0.5 + 0.5) * W;
+    const grad = ctx.createLinearGradient(sweepX - 60, 0, sweepX + 60, 0);
+    grad.addColorStop(0, 'rgba(255,178,62,0)');
+    grad.addColorStop(0.5, 'rgba(255,178,62,0.03)');
+    grad.addColorStop(1, 'rgba(255,178,62,0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  function loop() { draw(); requestAnimationFrame(loop); }
+
+  window.addEventListener('resize', resize);
+  resize();
+  initBook();
+  loop();
+})();
+</script>
+
+</body>
+</html>

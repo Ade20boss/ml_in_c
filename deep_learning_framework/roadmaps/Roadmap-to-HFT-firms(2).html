@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Daniel — Road to the Quant Firms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+:root{
+  --cream:#f7f3ee;--cream2:#f0ebe3;--cream3:#e8e1d7;--paper:#faf8f5;
+  --brown:#2c1f14;--brown2:#4a3728;--muted:#8c7b6e;--faint:#b8a99a;
+  --rust:#b85c3a;--sage:#5a7a5e;--gold:#9a7a3a;
+  --border:rgba(44,31,20,0.1);--border2:rgba(44,31,20,0.06);
+  --serif:'Lora',Georgia,serif;--sans:'DM Sans',sans-serif;--mono:'DM Mono',monospace;
+}
+body{background:var(--cream);color:var(--brown);font-family:var(--sans);font-size:15px;line-height:1.75;font-weight:300;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto;padding:0 2.5rem}
+header{padding:5rem 0 4rem;border-bottom:1px solid var(--border)}
+.date-chip{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--muted);margin-bottom:2.5rem}
+h1{font-family:var(--serif);font-size:clamp(2rem,5vw,3.2rem);font-weight:500;line-height:1.2;letter-spacing:-.01em;color:var(--brown);margin-bottom:1.25rem}
+h1 em{font-style:italic;color:var(--rust)}
+.lead{font-family:var(--serif);font-size:1.05rem;font-style:italic;color:var(--muted);max-width:560px;line-height:1.8;margin-bottom:2rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--muted);background:var(--cream2);border:1px solid var(--border);border-radius:20px;padding:4px 12px}
+.chip strong{color:var(--brown2);font-weight:500}
+nav{position:sticky;top:0;z-index:100;background:rgba(247,243,238,0.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);padding:.75rem 0}
+nav .wrap{display:flex;gap:0;overflow-x:auto}
+.nav-link{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--faint);text-decoration:none;padding:5px 16px;border-right:1px solid var(--border2);white-space:nowrap;transition:color .2s}
+.nav-link:first-child{border-left:1px solid var(--border2)}
+.nav-link:hover{color:var(--brown)}
+.nav-link.active{color:var(--rust)}
+section{padding:4rem 0;border-bottom:1px solid var(--border2)}
+.section-label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--faint);text-transform:uppercase;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+h2{font-family:var(--serif);font-size:1.7rem;font-weight:500;letter-spacing:-.01em;color:var(--brown);margin-bottom:1.5rem}
+h3{font-family:var(--serif);font-size:1.05rem;font-weight:500;font-style:italic;color:var(--brown2);margin-bottom:.75rem}
+p{color:var(--muted);font-size:14px;line-height:1.8}
+.firms{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+.firm{background:var(--paper);padding:1.5rem;transition:background .15s}
+.firm:hover{background:var(--cream2)}
+.firm-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.firm-name{font-family:var(--serif);font-size:1.15rem;font-weight:500;color:var(--brown)}
+.firm-prob{font-family:var(--mono);font-size:16px;font-weight:500;color:var(--rust)}
+.firm-lang{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--faint);margin-bottom:1rem}
+.bar-item{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.bar-lbl{font-family:var(--mono);font-size:10px;color:var(--faint);width:70px;flex-shrink:0}
+.dots{display:flex;gap:3px}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--cream3);border:1px solid var(--border)}
+.dot.on{background:var(--rust);border-color:var(--rust)}
+.firm-note{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border2);font-family:var(--mono);font-size:10px;color:var(--faint);line-height:1.6}
+.bars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:1.5rem}
+.bar-block{background:var(--paper);padding:1.5rem}
+.bar-block-num{font-family:var(--mono);font-size:11px;color:var(--faint);margin-bottom:.5rem}
+.bar-block-title{font-family:var(--serif);font-size:1rem;font-weight:500;color:var(--brown);margin-bottom:.75rem}
+.bar-block-body{font-size:13px;color:var(--muted);line-height:1.7}
+.progress-list{display:flex;flex-direction:column;gap:1rem;background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:1.5rem;margin-bottom:1.5rem}
+.prog-head{display:flex;justify-content:space-between;margin-bottom:5px}
+.prog-name{font-family:var(--mono);font-size:11px;color:var(--brown2)}
+.prog-pct{font-family:var(--mono);font-size:11px;color:var(--rust)}
+.prog-bar{height:2px;background:var(--cream3);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--rust);border-radius:2px}
+.timeline{display:flex;flex-direction:column;gap:0}
+.phase{display:grid;grid-template-columns:160px 1fr;gap:2rem;padding:2rem 0;border-bottom:1px solid var(--border2)}
+.phase:last-child{border-bottom:none}
+.phase-date{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--rust);display:block;margin-bottom:4px}
+.phase-title{font-family:var(--serif);font-size:.95rem;font-style:italic;color:var(--muted);line-height:1.5}
+.task-list{list-style:none;display:flex;flex-direction:column;gap:7px}
+.task-list li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--brown2);line-height:1.6}
+.task-list li input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:15px;height:15px;border:1.5px solid var(--cream3);border-radius:3px;cursor:pointer;flex-shrink:0;margin-top:3px;transition:all .2s;position:relative;background:var(--paper)}
+.task-list li input[type="checkbox"]:hover{border-color:var(--rust)}
+.task-list li input[type="checkbox"]:checked{background:var(--rust);border-color:var(--rust)}
+.task-list li input[type="checkbox"]:checked::after{content:'';position:absolute;top:2px;left:4px;width:5px;height:8px;border:1.5px solid white;border-top:none;border-left:none;transform:rotate(45deg)}
+.task-list li.done{text-decoration:line-through;color:var(--faint)}
+.tag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 7px;border-radius:20px;text-transform:uppercase;flex-shrink:0;align-self:flex-start;margin-top:4px}
+.t-csapp{background:#e8f0e8;color:#3d5e3d;border:1px solid rgba(61,94,61,.15)}
+.t-algo{background:#f0e8e4;color:#7a3f28;border:1px solid rgba(122,63,40,.15)}
+.t-math{background:#f0ede0;color:#7a6428;border:1px solid rgba(122,100,40,.15)}
+.t-cpp{background:#e8eaf0;color:#3a4a7a;border:1px solid rgba(58,74,122,.15)}
+.t-proj{background:#ede8f0;color:#5a3a7a;border:1px solid rgba(90,58,122,.15)}
+.t-apply{background:#f5ece8;color:#8c4a28;border:1px solid rgba(140,74,40,.15)}
+.book-cat{margin-bottom:2.5rem}
+.book-cat-label{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--rust);text-transform:uppercase;margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border2)}
+.book-row{display:grid;grid-template-columns:28px 1fr;gap:.75rem;align-items:start;padding:1rem 0;border-bottom:1px solid var(--border2)}
+.book-row:last-child{border-bottom:none}
+.book-num{font-family:var(--mono);font-size:11px;color:var(--faint);padding-top:2px}
+.book-btag{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.06em;padding:2px 8px;border-radius:20px;margin-bottom:5px}
+.btag-crit{background:#f5e8e4;color:var(--rust);border:1px solid rgba(184,92,58,.2)}
+.btag-start{background:#e8f0e8;color:var(--sage);border:1px solid rgba(90,122,94,.2)}
+.btag-iv{background:#f0ede0;color:var(--gold);border:1px solid rgba(154,122,58,.2)}
+.btag-adv{background:#ede8f0;color:#5a3a7a;border:1px solid rgba(90,58,122,.2)}
+.btag-js{background:#f0e8e8;color:#7a3a3a;border:1px solid rgba(122,58,58,.2)}
+.book-title{font-family:var(--serif);font-size:.95rem;font-style:italic;color:var(--brown);font-weight:500;margin-bottom:2px}
+.book-author{font-family:var(--mono);font-size:10px;color:var(--faint);margin-bottom:5px}
+.book-note{font-size:13px;color:var(--muted);line-height:1.7}
+.projects{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.proj-card{background:var(--paper);padding:1.5rem;transition:background .15s}
+.proj-card:hover{background:var(--cream2)}
+.proj-status{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.75rem;display:inline-block;padding:3px 10px;border-radius:20px}
+.ps-done{background:#e8f0e8;color:var(--sage);border:1px solid rgba(90,122,94,.2)}
+.ps-next{background:#f5e8e4;color:var(--rust);border:1px solid rgba(184,92,58,.2)}
+.ps-future{background:var(--cream2);color:var(--faint);border:1px solid var(--border)}
+.proj-name{font-family:var(--serif);font-size:1.05rem;font-weight:500;color:var(--brown);margin-bottom:3px}
+.proj-lang{font-family:var(--mono);font-size:10px;color:var(--faint);margin-bottom:.75rem}
+.proj-desc{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:.75rem}
+.proj-signal{font-family:var(--mono);font-size:10px;color:var(--faint);padding-top:.75rem;border-top:1px solid var(--border2);line-height:1.6}
+.proj-signal strong{color:var(--brown2)}
+.cp-track{border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.cp-row{display:grid;grid-template-columns:140px 1fr 100px;gap:1.5rem;align-items:center;padding:1.25rem 1.5rem;border-bottom:1px solid var(--border2);background:var(--paper);transition:background .15s}
+.cp-row:hover{background:var(--cream2)}
+.cp-row:last-child{border-bottom:none}
+.cp-period{font-family:var(--mono);font-size:10px;color:var(--rust);line-height:1.5}
+.cp-text{font-size:13px;color:var(--muted);line-height:1.6}
+.cp-text strong{color:var(--brown2);font-weight:500}
+.cp-rating{font-family:var(--mono);font-size:12px;color:var(--brown2);text-align:right;line-height:1.5}
+.math-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.math-block{background:var(--paper);padding:1.25rem}
+.math-label{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--rust);text-transform:uppercase;margin-bottom:.75rem}
+.math-items{list-style:none;display:flex;flex-direction:column;gap:4px}
+.math-items li{font-size:12.5px;color:var(--muted);padding-left:.75rem;position:relative}
+.math-items li::before{content:'·';position:absolute;left:0;color:var(--faint)}
+.note{background:var(--cream2);border-left:2px solid var(--rust);padding:1rem 1.25rem;font-size:13px;color:var(--muted);line-height:1.75;border-radius:0 6px 6px 0;margin-top:1.5rem}
+.note strong{color:var(--brown2);font-weight:500}
+.manifesto-block{background:var(--paper);border:1px solid var(--border);border-radius:12px;padding:2.5rem 3rem}
+.manifesto-block blockquote{font-family:var(--serif);font-size:1.05rem;font-style:italic;color:var(--brown2);line-height:1.9}
+.manifesto-sig{margin-top:1.5rem;font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.08em}
+footer{padding:2.5rem 0;text-align:center;border-top:1px solid var(--border2)}
+.footer-text{font-family:var(--mono);font-size:10px;color:var(--faint);letter-spacing:.06em;line-height:2}
+@media(max-width:700px){
+  .firms,.bars,.projects,.math-grid{grid-template-columns:1fr}
+  .phase{grid-template-columns:1fr;gap:.5rem}
+  .cp-row{grid-template-columns:1fr;gap:.5rem}
+  .cp-rating{text-align:left}
+  .wrap{padding:0 1.25rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="date-chip">April 2026 — Daniel Adeoluwa Ademoye · Lagos</div>
+    <h1>Road to the<br><em>Quant Firms.</em></h1>
+    <p class="lead">Every book, every project, every contest. A complete guide to internship offers at Jane Street, Citadel, Optiver, and Hudson River Trading by 2027.</p>
+    <div class="chips">
+      <div class="chip">Target: <strong>2027 internship</strong></div>
+      <div class="chip">Full-time: <strong>2028</strong></div>
+      <div class="chip">Year 3, Semester 1</div>
+      <div class="chip">C → C++ → OCaml</div>
+      <div class="chip">Codeforces target: <strong>1900+</strong></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <div class="wrap">
+    <a class="nav-link" href="#firms">Firms</a>
+    <a class="nav-link" href="#bars">Three bars</a>
+    <a class="nav-link" href="#progress">Progress</a>
+    <a class="nav-link" href="#timeline">Timeline</a>
+    <a class="nav-link" href="#books">Books</a>
+    <a class="nav-link" href="#projects">Projects</a>
+    <a class="nav-link" href="#cp">Competitive programming</a>
+    <a class="nav-link" href="#math">Mathematics</a>
+    <a class="nav-link" href="#manifesto">Manifesto</a>
+  </div>
+</nav>
+
+<section id="firms">
+  <div class="wrap">
+    <div class="section-label">01 — The firms</div>
+    <h2>Four targets. One path.</h2>
+    <div class="firms">
+      <div class="firm">
+        <div class="firm-top"><div><div class="firm-name">Hudson River Trading</div><div class="firm-lang">C++ · Python · Low latency</div></div><div class="firm-prob">35–45%</div></div>
+        <div class="bar-item"><span class="bar-lbl">Mathematics</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Algorithms</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Systems</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div></div></div>
+        <div class="firm-note">Most aligned with your trajectory. Apply here first. Best probability on the list.</div>
+      </div>
+      <div class="firm">
+        <div class="firm-top"><div><div class="firm-name">Citadel SWE</div><div class="firm-lang">C++ · Python · Data infrastructure</div></div><div class="firm-prob">25–35%</div></div>
+        <div class="bar-item"><span class="bar-lbl">Mathematics</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Algorithms</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Systems</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div></div></div>
+        <div class="firm-note">LeetCode hard under time pressure plus systems design. Uses ClickHouse internally. DDIA chapter 3 is directly relevant.</div>
+      </div>
+      <div class="firm">
+        <div class="firm-top"><div><div class="firm-name">Optiver</div><div class="firm-lang">C++ · Python · Mental arithmetic</div></div><div class="firm-prob">20–30%</div></div>
+        <div class="bar-item"><span class="bar-lbl">Mathematics</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Algorithms</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Systems</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div></div>
+        <div class="firm-note">80-in-8 mental arithmetic: 80 problems in 8 minutes. Six seconds per problem. Practice daily from 12 months out.</div>
+      </div>
+      <div class="firm">
+        <div class="firm-top"><div><div class="firm-name">Jane Street</div><div class="firm-lang">OCaml · Math-heavy · Probability</div></div><div class="firm-prob">15–25%</div></div>
+        <div class="bar-item"><span class="bar-lbl">Mathematics</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Algorithms</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div></div></div>
+        <div class="bar-item"><span class="bar-lbl">Systems</span><div class="dots"><div class="dot on"></div><div class="dot on"></div><div class="dot on"></div><div class="dot"></div><div class="dot"></div></div></div>
+        <div class="firm-note">Hardest target. Primarily OCaml. Mathematical interviews unlike any other firm. "Real World OCaml" is maintained by Jane Street themselves.</div>
+      </div>
+    </div>
+    <div class="note"><strong>Strategy:</strong> Apply to HRT and Optiver first. Use those interviews for experience before Citadel and Jane Street. Preparation is identical across all four — one path, four doors.</div>
+  </div>
+</section>
+
+<section id="bars">
+  <div class="wrap">
+    <div class="section-label">02 — The three bars</div>
+    <h2>Every candidate fails at least one.</h2>
+    <div class="bars">
+      <div class="bar-block">
+        <div class="bar-block-num">Bar one</div>
+        <div class="bar-block-title">Mathematical &amp; probabilistic reasoning</div>
+        <div class="bar-block-body">Expected value, conditional probability, combinatorics, game theory, mental arithmetic under pressure. The physiotherapy curriculum does not cover this. Build it deliberately, in parallel with everything else, starting now.</div>
+      </div>
+      <div class="bar-block">
+        <div class="bar-block-num">Bar two</div>
+        <div class="bar-block-title">Algorithms &amp; competitive programming</div>
+        <div class="bar-block-body">Not LeetCode medium — Codeforces Div 1 level. Dynamic programming, graph algorithms, segment trees, string algorithms, game theory. This is an 18–24 month build. The only way through is through.</div>
+      </div>
+      <div class="bar-block">
+        <div class="bar-block-num">Bar three</div>
+        <div class="bar-block-title">Systems engineering depth</div>
+        <div class="bar-block-body">Memory hierarchy, lock-free data structures, CPU cache behavior, memory ordering. Ghost VM is the foundation. The order book and lock-free ring buffer extend it into HFT territory.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="progress">
+  <div class="wrap">
+    <div class="section-label">03 — Progress</div>
+    <h2>Where you stand, April 2026.</h2>
+    <div class="progress-list">
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">CSAPP (12 chapters)</span><span class="prog-pct">8%</span></div><div class="prog-bar"><div class="prog-fill" style="width:8%"></div></div></div>
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">NeetCode 150</span><span class="prog-pct">1%</span></div><div class="prog-bar"><div class="prog-fill" style="width:1%"></div></div></div>
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">Systems engineering depth</span><span class="prog-pct">35%</span></div><div class="prog-bar"><div class="prog-fill" style="width:35%"></div></div></div>
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">C++ proficiency</span><span class="prog-pct">5%</span></div><div class="prog-bar"><div class="prog-fill" style="width:5%"></div></div></div>
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">Mathematics &amp; probability</span><span class="prog-pct">10%</span></div><div class="prog-bar"><div class="prog-fill" style="width:10%"></div></div></div>
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">Competitive programming</span><span class="prog-pct">5%</span></div><div class="prog-bar"><div class="prog-fill" style="width:5%"></div></div></div>
+      <div class="prog-item"><div class="prog-head"><span class="prog-name">Quant-specific projects</span><span class="prog-pct">0%</span></div><div class="prog-bar"><div class="prog-fill" style="width:0%"></div></div></div>
+    </div>
+    <div class="note"><strong>Already built:</strong> Ghost VM (binary protocol, bytecode VM, Valgrind clean), Introsort (300M element stress test), ML Engine, OpenSRE PR #807 merged (P0 masking pipeline fix), Forge Africa production backend. Foundation is real. Gap is math, algorithms, C++, and quant-specific projects.</div>
+  </div>
+</section>
+
+<section id="timeline">
+  <div class="wrap">
+    <div class="section-label">04 — Timeline</div>
+    <h2>Month by month.</h2>
+    <div class="timeline">
+
+      <div class="phase">
+        <div><span class="phase-date">NOW — JUN 2026</span><div class="phase-title">Foundation: bits, arrays, and first probability</div></div>
+        <ul class="task-list">
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 2 — integers, two's complement, IEEE 754. Explains the *(size_t*)&amp;v trick in Ghost VM.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 3 — x86-64 assembly, calling conventions, stack frames.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 4 — processor architecture, pipeline stages.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>NeetCode 150: Arrays, Hashing, Two Pointers, Sliding Window — all in C.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Create Codeforces account. Enter first Div 3 contest this week. Not next week.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>Start "A First Course in Probability" (Ross) — chapters 1–4.</li>
+          <li><input type="checkbox"><span class="tag t-cpp">C++</span>Read "A Tour of C++" — your C background makes this a 2-week book.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Ghost VM technical article published on Hashnode and Hacker News.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div><span class="phase-date">JUL — SEP 2026</span><div class="phase-title">Performance and memory: the hardware layer</div></div>
+        <ul class="task-list">
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 5 — optimizing program performance. Cache-aware code, branch prediction.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 6 — memory hierarchy. Cache lines, spatial and temporal locality. Gate for query engine.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>NeetCode 150: Stack, Binary Search, Linked List, Trees, Tries, Heap.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Codeforces: Div 3 A/B/C consistently. Target rating 1200.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>"A First Course in Probability" — chapters 5–8. Distributions, variance.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>Start "Probability and Computing" — chapters 1–3. Expectation, variance, randomized algorithms.</li>
+          <li><input type="checkbox"><span class="tag t-cpp">C++</span>Start "Effective Modern C++" — move semantics, smart pointers, constexpr.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Lock-free ring buffer in C++ — atomics, cache-line padding, no mutexes. Benchmark README with nanosecond numbers.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>MLH Fellowship Fall 2026 — applications open July/August.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>LFX Mentorship Fall 2026 — target Cilium or Prometheus.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>Outreachy December 2026 cohort — initial applications open September.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div><span class="phase-date">OCT — DEC 2026</span><div class="phase-title">Concurrency, linking, and virtual memory</div></div>
+        <ul class="task-list">
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 7 — linking. How executables are built.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 8 — exceptional control flow. fork, exec, waitpid, signals, process groups. Hard gate for Raptor. Do not touch Raptor before this chapter is complete.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 9 — virtual memory implementation. Explains brk/sbrk and the malloc internals question.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>NeetCode 150: Backtracking, Graphs, Dynamic Programming — complete the set.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Codeforces: Div 2 A/B consistently. Target rating 1400.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Start "Competitive Programmer's Handbook" (Laaksonen, free PDF).</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>"Probability and Computing" (Mitzenmacher & Upfal) — chapters 4–5. Balls-into-bins, hashing, load balancing.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>Optiver 80-in-8 mental arithmetic practice — daily. No exceptions.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Query engine — columnar storage, vectorized execution, basic SQL. Add Prometheus exporter + Grafana dashboard. Document p99 latency under load.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Raptor build system — DAG cycle detection, parallel fork/waitpid, content-hash incremental builds, build cache, minimal DSL. Benchmark vs Make and Ninja on Ghost VM. Gate: Chapter 8 first.</li>
+          <li><input type="checkbox"><span class="tag t-cpp">C++</span>"C++ Concurrency in Action" (Williams) — atomics, memory model, lock-free fundamentals.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div><span class="phase-date">JAN — APR 2027</span><div class="phase-title">Networks, concurrency, and quant-specific systems</div></div>
+        <ul class="task-list">
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 10 — system-level I/O.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 11 — network programming. Gate for Ghost VM real sockets.</li>
+          <li><input type="checkbox"><span class="tag t-csapp">CSAPP</span>Chapter 12 — concurrent programming. Most important chapter for HFT systems work.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Codeforces: Div 2 C/D problems. Target rating 1700.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Deep study: segment trees, Fenwick trees, DP optimization, network flow.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>"Probability and Computing" — chapters 6, 11. Bloom filters, Markov chains, tail bounds.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>DDIA chapters 1–3. Storage engines, B-trees, LSM trees.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Order book in C++ — price-time priority, limit/market/cancel. Target 1 million events/second.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>ITCH 5.0 market data feed parser — deserialize NASDAQ binary feed, reconstruct order book.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Network latency measurement tool — microsecond resolution, raw sockets.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>Linux observability lab — eBPF TCP latency tracer, perf flamegraphs for order book, systemd unit files for all services.</li>
+          <li><input type="checkbox"><span class="tag t-cpp">C++</span>"The Art of Multiprocessor Programming" — chapters 1–8.</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <div><span class="phase-date">MAY — AUG 2027</span><div class="phase-title">Interview preparation and applications</div></div>
+        <ul class="task-list">
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Codeforces: Div 1 A problems. Target rating 1900.</li>
+          <li><input type="checkbox"><span class="tag t-algo">Algo</span>Mock interviews — timed, 45 minutes each, with a partner.</li>
+          <li><input type="checkbox"><span class="tag t-math">Math</span>"Discrete Mathematics" (Rosen) — combinatorics and graph theory chapters.</li>
+          <li><input type="checkbox"><span class="tag t-proj">Project</span>RAG engine — HNSW vector index in C/C++, Python wrapper. Storage extends query engine.</li>
+          <li><input type="checkbox"><span class="tag t-cpp">C++</span>Start OCaml — "Real World OCaml" (free at dev.realworldocaml.org). Jane Street signal.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>Hudson River Trading — first.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>Optiver — simultaneously.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>Citadel SWE — simultaneously.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>Jane Street — simultaneously.</li>
+          <li><input type="checkbox"><span class="tag t-apply">Apply</span>Build referral connections — their engineers write publicly on LinkedIn and X.</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<section id="books">
+  <div class="wrap">
+    <div class="section-label">05 — Books</div>
+    <h2>What to read, in order.</h2>
+
+    <div class="book-cat">
+      <div class="book-cat-label">Systems engineering</div>
+      <div class="book-row"><div class="book-num">01</div><div><span class="book-btag btag-crit">Critical</span><div class="book-title">Computer Systems: A Programmer's Perspective</div><div class="book-author">Bryant &amp; O'Hallaron</div><div class="book-note">All 12 chapters. No skipping. Ghost VM proves you have the instincts — CSAPP gives you the theory that explains why they were right.</div></div></div>
+      <div class="book-row"><div class="book-num">02</div><div><span class="book-btag btag-adv">Advanced</span><div class="book-title">Systems Performance</div><div class="book-author">Brendan Gregg</div><div class="book-note">Profiling, performance analysis, understanding where time actually goes. Used daily by HFT engineers. After CSAPP chapter 6.</div></div></div>
+      <div class="book-row"><div class="book-num">03</div><div><span class="book-btag btag-crit">Critical</span><div class="book-title">System Programming in Linux</div><div class="book-author">Stewart Weiss</div><div class="book-note">Hands-on Linux system calls, processes, signals, IPC, and threading. Bridges CSAPP theory to real production code.</div></div></div>
+      <div class="book-row"><div class="book-num">04</div><div><span class="book-btag btag-adv">Advanced</span><div class="book-title">Designing Data-Intensive Applications</div><div class="book-author">Martin Kleppmann &amp; Chris Riccomini</div><div class="book-note">Chapters 1–3 and chapter 7 are the priority. Citadel uses ClickHouse — DDIA explains why.</div></div></div>
+    </div>
+
+    <div class="book-cat">
+      <div class="book-cat-label">C++ — in this order</div>
+      <div class="book-row"><div class="book-num">01</div><div><span class="book-btag btag-start">Start here</span><div class="book-title">A Tour of C++</div><div class="book-author">Bjarne Stroustrup</div><div class="book-note">Short, dense, gets you productive fast. Your C background makes this a two-week book.</div></div></div>
+      <div class="book-row"><div class="book-num">02</div><div><span class="book-btag btag-crit">Critical</span><div class="book-title">Effective Modern C++</div><div class="book-author">Scott Meyers</div><div class="book-note">Move semantics, perfect forwarding, constexpr, smart pointers. Separates C++ programmers from C++ engineers.</div></div></div>
+      <div class="book-row"><div class="book-num">03</div><div><span class="book-btag btag-adv">Advanced</span><div class="book-title">C++ Concurrency in Action</div><div class="book-author">Anthony Williams</div><div class="book-note">C++ memory model, atomics, lock-free programming. Read alongside the ring buffer project.</div></div></div>
+    </div>
+
+    <div class="book-cat">
+      <div class="book-cat-label">Mathematics — the gap that will kill your application</div>
+      <div class="book-row"><div class="book-num">01</div><div><span class="book-btag btag-start">Start here</span><div class="book-title">A First Course in Probability</div><div class="book-author">Sheldon Ross</div><div class="book-note">The foundational text. Every quant firm tests probability. Do every problem. Not optional.</div></div></div>
+      <div class="book-row"><div class="book-num">02</div><div><span class="book-btag btag-crit">Critical</span><div class="book-title">Probability and Computing</div><div class="book-author">Michael Mitzenmacher & Eli Upfal</div><div class="book-note">Randomized algorithms and probabilistic analysis for systems. Covers expectation, hashing, load balancing, Bloom filters, and tail bounds — the probability you actually use in HFT interviews, not trader puzzles.</div></div></div>
+      <div class="book-row"><div class="book-num">03</div><div><span class="book-btag btag-start">Short read</span><div class="book-title">How to Solve It</div><div class="book-author">George Pólya</div><div class="book-note">Mathematical problem solving as a discipline. Read early. Changes how you approach problems you've never seen.</div></div></div>
+      <div class="book-row"><div class="book-num">04</div><div><span class="book-btag btag-adv">Advanced</span><div class="book-title">Discrete Mathematics and Its Applications</div><div class="book-author">Kenneth Rosen</div><div class="book-note">Combinatorics and graph theory chapters only. Jane Street especially tests combinatorial reasoning.</div></div></div>
+    </div>
+
+    <div class="book-cat">
+      <div class="book-cat-label">Algorithms</div>
+      <div class="book-row"><div class="book-num">01</div><div><span class="book-btag btag-start">Start here</span><div class="book-title">Competitive Programmer's Handbook</div><div class="book-author">Antti Laaksonen — free PDF online</div><div class="book-note">Best single resource for competitive programming. Free. Read alongside Codeforces practice.</div></div></div>
+      <div class="book-row"><div class="book-num">02</div><div><span class="book-btag btag-crit">Critical</span><div class="book-title">The Algorithm Design Manual</div><div class="book-author">Steven Skienna — already on your shelf</div><div class="book-note">Continue it. The war stories build intuition for when to apply what.</div></div></div>
+      <div class="book-row"><div class="book-num">03</div><div><span class="book-btag btag-iv">Interview prep</span><div class="book-title">Elements of Programming Interviews in C++</div><div class="book-author">Aziz, Lee, Prakash</div><div class="book-note">Best structured interview prep book. Do problems in C++ once comfortable with the language.</div></div></div>
+    </div>
+
+    <div class="book-cat">
+      <div class="book-cat-label">OCaml — Jane Street specific</div>
+      <div class="book-row"><div class="book-num">01</div><div><span class="book-btag btag-js">Jane Street</span><div class="book-title">Real World OCaml</div><div class="book-author">Minsky, Madhavapeddy, Hickey — free at dev.realworldocaml.org</div><div class="book-note">Jane Street maintains this book. Reading it signals you cared enough to learn their language. Start late 2026 after C++ is solid.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="projects">
+  <div class="wrap">
+    <div class="section-label">06 — Projects</div>
+    <h2>What your GitHub must show.</h2>
+    <p style="margin-bottom:1.5rem;">Each project demonstrates a specific capability. Together they tell the story of an engineer who understands computers from bytecode through storage through concurrency through domain-specific systems.</p>
+    <div class="projects">
+      <div class="proj-card"><div class="proj-status ps-done">Complete ✓</div><div class="proj-name">Ghost VM</div><div class="proj-lang">C · Binary protocol · Object system</div><div class="proj-desc">Stack-based bytecode VM, five-type polymorphic object system, binary wire protocol, FNV-1a checksums, zero-copy parser, move semantics. Valgrind clean. 63/63 allocs/frees.</div><div class="proj-signal">Signals: <strong>execution at the byte level. Binary protocols. Ownership semantics.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-done">Complete ✓</div><div class="proj-name">Introsort</div><div class="proj-lang">C · Algorithms</div><div class="proj-desc">Median-of-three quicksort + insertion sort for subarrays under 16 elements. Stress-tested on 300 million elements. Built because of a LeetCode problem.</div><div class="proj-signal">Signals: <strong>you build from first principles. You refuse to treat stdlib as magic.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-done">In progress</div><div class="proj-name">ML Engine</div><div class="proj-lang">C · Neural networks</div><div class="proj-desc">Gradient descent, finite-difference differentiation, OR gate classifier. Next: XOR failure → hidden layer → backpropagation → configurable architecture. The XOR failure is the most important step.</div><div class="proj-signal">Signals: <strong>you understand neural networks at the mathematical level.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-done">Complete ✓</div><div class="proj-name">OpenSRE contribution</div><div class="proj-lang">Python · AI pipeline · Production</div><div class="proj-desc">PR #807 merged — fixed a P0 security gap in the masking pipeline. Two upstream nodes were feeding raw infrastructure identifiers into LLM prompts unmasked. Greptile 5/5 confidence.</div><div class="proj-signal">Signals: <strong>you can navigate a real production codebase and fix security-adjacent bugs.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-next">Build next</div><div class="proj-name">Lock-free ring buffer</div><div class="proj-lang">C++ · Atomics · Concurrency</div><div class="proj-desc">SPSC ring buffer using atomic operations and proper memory ordering. No mutexes. Cache-line padded. Benchmark against mutex version with nanosecond numbers in README.</div><div class="proj-signal">Signals: <strong>concurrent systems at the memory ordering level. Direct HFT infrastructure work.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-next">After CSAPP Ch.6</div><div class="proj-name">Query engine</div><div class="proj-lang">C / C++ · Columnar storage</div><div class="proj-desc">Columnar storage, vectorized execution, basic cost-based optimizer, simple SQL parser. Benchmark: rows/second scanned, columnar vs row-oriented. Numbers in README.</div><div class="proj-signal">Signals: <strong>why ClickHouse is designed the way it is. Direct Citadel relevance.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-next">Flagship quant project</div><div class="proj-name">Order book</div><div class="proj-lang">C++ · HFT domain · Price-time priority</div><div class="proj-desc">Price-time priority order book: limit orders, market orders, cancellations, best bid/offer feed. Target 1 million order events per second. The core data structure of every exchange on earth.</div><div class="proj-signal">Signals: <strong>domain knowledge + systems engineering. This alone can get you an interview.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-next">Gate: CSAPP Ch.8</div><div class="proj-name">Raptor</div><div class="proj-lang">C · Build system · Process management</div><div class="proj-desc">Parallel, incremental build system. Dependency DAG with cycle detection. Parallel fork/waitpid. Content-hash incremental builds. Build cache keyed by input hash. Minimal target DSL. Benchmarked vs Make and Ninja. Inspired by Tsoding's nob — significantly extended beyond it.</div><div class="proj-signal">Signals: <strong>process management, DAG algorithms, content-addressable storage. The ideas behind Bazel, Buck, Nix.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-future">2027 Q1</div><div class="proj-name">ITCH 5.0 feed parser</div><div class="proj-lang">C++ · Binary protocol · Financial data</div><div class="proj-desc">Parse NASDAQ's ITCH 5.0 public market data protocol. Deserialize binary messages, reconstruct order book state, output trade events. Ghost VM's wire protocol applied to a real financial format.</div><div class="proj-signal">Signals: <strong>real financial wire protocols. This is what HFT engineers build.</strong></div></div>
+      <div class="proj-card"><div class="proj-status ps-future">After query engine</div><div class="proj-name">RAG engine</div><div class="proj-lang">C++ / Python · HNSW · Vector search</div><div class="proj-desc">HNSW vector index from scratch in C/C++. Python wrapper. Storage extends the query engine's columnar float storage. Not a LangChain wrapper — a real implementation.</div><div class="proj-signal">Signals: <strong>vector search at the implementation level. Relevant for Citadel research infrastructure.</strong></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="cp">
+  <div class="wrap">
+    <div class="section-label">07 — Competitive programming</div>
+    <h2>The longest build. Start today.</h2>
+    <p style="margin-bottom:1.5rem;">Every month you delay is a month of contest experience you cannot recover. The only way through is through.</p>
+    <div class="cp-track">
+      <div class="cp-row"><div class="cp-period">Now → Month 4</div><div class="cp-text"><strong>NeetCode 150 complete.</strong> All sections in C. First Codeforces Div 3 contest this week. Not next week.</div><div class="cp-rating">800 → 1100</div></div>
+      <div class="cp-row"><div class="cp-period">Month 4 → 8</div><div class="cp-text"><strong>Codeforces Div 3 A/B/C consistently.</strong> "Competitive Programmer's Handbook" read alongside. Div 2 A/B becoming automatic.</div><div class="cp-rating">1100 → 1400</div></div>
+      <div class="cp-row"><div class="cp-period">Month 8 → 14</div><div class="cp-text"><strong>Codeforces Div 2 A/B/C consistently.</strong> DP optimization. Graph algorithms deeply. Binary search on the answer. KMP, Z-algorithm.</div><div class="cp-rating">1400 → 1700</div></div>
+      <div class="cp-row"><div class="cp-period">Month 14 → 20</div><div class="cp-text"><strong>Codeforces Div 2 D/E problems.</strong> Game theory, suffix arrays, bitmask DP. Probability problems — where math and algo meet.</div><div class="cp-rating">1700 → 1900</div></div>
+      <div class="cp-row"><div class="cp-period">Month 20 → Application</div><div class="cp-text"><strong>Codeforces Div 1 A/B problems.</strong> Jane Street and Optiver level. Mock interviews under time pressure.</div><div class="cp-rating">1900 → 2100+</div></div>
+    </div>
+    <div class="note" style="margin-top:1.5rem;"><strong>Optiver 80-in-8:</strong> 80 mental arithmetic problems in 8 minutes. Six seconds per problem. Practice sites exist specifically for this. Start 12 months before application. Daily. No exceptions.</div>
+    <div style="margin-top:2.5rem;">
+      <h3>Topics to master</h3>
+      <div class="math-grid" style="margin-top:1rem;">
+        <div class="math-block"><div class="math-label">Dynamic programming</div><ul class="math-items"><li>All standard patterns</li><li>Interval DP</li><li>Bitmask DP</li><li>DP on trees</li><li>DP optimization</li></ul></div>
+        <div class="math-block"><div class="math-label">Graph algorithms</div><ul class="math-items"><li>Dijkstra, Bellman-Ford</li><li>Floyd-Warshall</li><li>Minimum spanning trees</li><li>Network flow</li><li>SCC, bridges, articulation</li></ul></div>
+        <div class="math-block"><div class="math-label">Data structures</div><ul class="math-items"><li>Segment trees</li><li>Fenwick trees (BIT)</li><li>Sparse tables</li><li>DSU / Union-Find</li><li>Treap / RBST</li></ul></div>
+        <div class="math-block"><div class="math-label">String algorithms</div><ul class="math-items"><li>KMP algorithm</li><li>Z-algorithm</li><li>Suffix arrays</li><li>Aho-Corasick</li><li>Polynomial hashing</li></ul></div>
+        <div class="math-block"><div class="math-label">Mathematics</div><ul class="math-items"><li>Fast exponentiation</li><li>Sieve of Eratosthenes</li><li>Modular arithmetic</li><li>Number theory</li><li>Combinatorics</li></ul></div>
+        <div class="math-block"><div class="math-label">Game theory</div><ul class="math-items"><li>Sprague-Grundy theorem</li><li>Nim and variants</li><li>Expected value games</li><li>Probability puzzles</li><li>Decision trees</li></ul></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="math">
+  <div class="wrap">
+    <div class="section-label">08 — Mathematics</div>
+    <h2>The gap the curriculum didn't cover.</h2>
+    <p style="margin-bottom:1.5rem;">Every firm on this list tests mathematical thinking. Build it deliberately, from scratch, in parallel with everything else.</p>
+    <div class="math-grid">
+      <div class="math-block"><div class="math-label">Probability</div><ul class="math-items"><li>Sample spaces and events</li><li>Conditional probability</li><li>Bayes' theorem</li><li>Independence</li><li>Expected value</li><li>Variance and covariance</li><li>Common distributions</li><li>Law of large numbers</li></ul></div>
+      <div class="math-block"><div class="math-label">Combinatorics</div><ul class="math-items"><li>Permutations and combinations</li><li>Binomial coefficients</li><li>Stars and bars</li><li>Inclusion-exclusion</li><li>Pigeonhole principle</li><li>Generating functions</li><li>Catalan numbers</li></ul></div>
+      <div class="math-block"><div class="math-label">Number theory</div><ul class="math-items"><li>Divisibility and primes</li><li>GCD and LCM</li><li>Modular arithmetic</li><li>Fermat's little theorem</li><li>Chinese remainder theorem</li><li>Euler's totient</li></ul></div>
+      <div class="math-block"><div class="math-label">Mental arithmetic</div><ul class="math-items"><li>Multi-digit multiplication</li><li>Fast division approximation</li><li>Percentage calculations</li><li>Square root approximation</li><li>Optiver 80-in-8 daily</li></ul></div>
+      <div class="math-block"><div class="math-label">Logic and reasoning</div><ul class="math-items"><li>Propositional logic</li><li>Proof techniques</li><li>Graph theory basics</li><li>Invariant arguments</li><li>Extremal principle</li><li>Mathematical induction</li></ul></div>
+      <div class="math-block"><div class="math-label">Quant puzzles</div><ul class="math-items"><li>Expected value problems</li><li>Optimal stopping</li><li>Random walks</li><li>Martingale intuition</li><li>Betting strategies</li><li>Market-making intuition</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="manifesto" style="border-bottom:none;">
+  <div class="wrap">
+    <div class="section-label">09 — Manifesto</div>
+    <h2>Why this is possible.</h2>
+    <div class="manifesto-block">
+      <blockquote>
+        The engineer who built a bytecode virtual machine at 1am because he couldn't treat sorting as a black box — that engineer can get into Jane Street. Not because the path is easy. Because the instinct is already there.
+        <br><br>
+        The introsort. The binary wire protocol. The move semantics via length=0. The FNV-1a checksum. The P0 security bug in a production AI pipeline. None of these came from tutorials. They came from refusing to stop at the surface.
+        <br><br>
+        Jane Street hires people who think differently about problems. Citadel hires people who implement correctly under pressure. HRT hires people who understand what the machine is actually doing. You have been building exactly that understanding — in a physiotherapy program, from Lagos, without a formal CS curriculum.
+        <br><br>
+        The gap is real. The math needs building. Competitive programming needs 18 months of sustained daily effort. C++ needs to become natural. None of this is beyond you. The evidence is already on your GitHub.
+        <br><br>
+        Lock in. Every chapter. Every contest. Every problem. The money will come.
+      </blockquote>
+      <div class="manifesto-sig">— Daniel Ademoye · April 2026 · Lagos, Nigeria</div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-text">
+      Daniel Adeoluwa Ademoye · Road to the Quant Firms · April 2026<br>
+      Jane Street · Citadel · Optiver · Hudson River Trading · 2027 internship · 2028 full-time
+    </div>
+  </div>
+</footer>
+
+<script>
+document.querySelectorAll('.task-list input[type="checkbox"]').forEach((cb,i)=>{
+  const k='qt2_'+i;
+  if(localStorage.getItem(k)==='true'){cb.checked=true;cb.closest('li').classList.add('done')}
+  cb.addEventListener('change',()=>{localStorage.setItem(k,cb.checked);cb.closest('li').classList.toggle('done',cb.checked)})
+});
+const secs=document.querySelectorAll('section[id]');
+const nls=document.querySelectorAll('.nav-link');
+new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)nls.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id))})
+},{threshold:0.3}).observe(...secs),secs.forEach(s=>new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)nls.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+e.target.id))})},{threshold:0.3}).observe(s));
+</script>
+</body>
+</html>

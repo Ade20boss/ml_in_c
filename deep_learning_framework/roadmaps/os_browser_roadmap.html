@@ -1,0 +1,495 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.sr-only { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0; }
+.page { padding: 1.5rem 0; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+.header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; }
+
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.tab { font-size: 13px; font-weight: 400; padding: 6px 14px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); cursor: pointer; background: transparent; transition: all .15s; }
+.tab:hover { background: var(--color-background-secondary); }
+.tab.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+
+.phase { display: none; }
+.phase.active { display: block; }
+
+.phase-header { margin-bottom: 1rem; }
+.phase-header .badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; display: inline-block; margin-bottom: 8px; }
+.phase-header h2 { font-size: 17px; font-weight: 500; color: var(--color-text-primary); }
+.phase-header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 4px; line-height: 1.6; }
+
+.section-title { font-size: 13px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin: 1.25rem 0 0.6rem; }
+
+.card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 10px; }
+.card h3 { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+.card p, .card li { font-size: 13px; color: var(--color-text-secondary); line-height: 1.65; }
+.card ul { padding-left: 1rem; margin-top: 6px; }
+.card li { margin-bottom: 3px; }
+.card a { color: var(--color-text-info); text-decoration: none; }
+.card a:hover { text-decoration: underline; }
+
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 20px; white-space: nowrap; }
+.tag-book { background: var(--color-background-success); color: var(--color-text-success); }
+.tag-video { background: var(--color-background-info); color: var(--color-text-info); }
+.tag-course { background: var(--color-background-warning); color: var(--color-text-warning); }
+.tag-proj { background: var(--color-background-danger); color: var(--color-text-danger); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } }
+
+.milestone { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.milestone:last-child { border-bottom: none; }
+.ms-num { width: 24px; height: 24px; border-radius: 50%; background: var(--color-background-secondary); border: 0.5px solid var(--color-border-secondary); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: var(--color-text-secondary); flex-shrink: 0; margin-top: 1px; }
+.ms-body h4 { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+.ms-body p { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; line-height: 1.5; }
+
+.timeline-bar { display: flex; gap: 0; margin: 1rem 0 1.5rem; border-radius: var(--border-radius-md); overflow: hidden; }
+.tl-seg { padding: 8px 12px; font-size: 11px; font-weight: 500; text-align: center; flex: 1; }
+
+.ask-btn { font-size: 12px; padding: 5px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); background: transparent; cursor: pointer; color: var(--color-text-secondary); margin-top: 10px; transition: all .15s; }
+.ask-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+</style>
+
+<h2 class="sr-only">Complete OS and Browser Development Roadmap — phases from foundations to advanced systems</h2>
+
+<div class="page">
+  <div class="header">
+    <h1>OS + Browser Roadmap</h1>
+    <p>Production-grade, Linux-level ambition. Estimated timeline: 4–6 years of deep work.</p>
+  </div>
+
+  <div class="timeline-bar">
+    <div class="tl-seg" style="background:#EEEDFE;color:#3C3489;">Phase 1<br>Yr 1</div>
+    <div class="tl-seg" style="background:#CEC BF6;color:#3C3489;background:#AFA9EC;color:#26215C;">Phase 2<br>Yr 1–2</div>
+    <div class="tl-seg" style="background:#E1F5EE;color:#085041;">Phase 3<br>Yr 2–3</div>
+    <div class="tl-seg" style="background:#9FE1CB;color:#04342C;">Phase 4<br>Yr 3–4</div>
+    <div class="tl-seg" style="background:#FAECE7;color:#4A1B0C;">Phase 5<br>Yr 4–5</div>
+    <div class="tl-seg" style="background:#F5C4B3;color:#4A1B0C;">Phase 6<br>Yr 5–6</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="show('foundations')">1. Foundations</button>
+    <button class="tab" onclick="show('kernel')">2. Kernel</button>
+    <button class="tab" onclick="show('os-advanced')">3. Full OS</button>
+    <button class="tab" onclick="show('browser-engine')">4. Browser Engine</button>
+    <button class="tab" onclick="show('browser-advanced')">5. Full Browser</button>
+    <button class="tab" onclick="show('production')">6. Production</button>
+  </div>
+
+  <!-- PHASE 1: FOUNDATIONS -->
+  <div class="phase active" id="phase-foundations">
+    <div class="phase-header">
+      <span class="badge" style="background:#EEEDFE;color:#3C3489;">Phase 1 · ~12 months</span>
+      <h2>Foundations — the bedrock you cannot skip</h2>
+      <p>Without mastery of C, x86 assembly, and computer architecture, you will hit walls at every turn. This phase is non-negotiable. Most failed OS projects die here.</p>
+    </div>
+
+    <div class="section-title">Core Language: C & Assembly</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The C Programming Language</h3>
+        <p><strong>Kernighan & Ritchie.</strong> The original. Read it twice. Write every exercise. You need C at a deep, reflexive level — not just "I've used it."</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> C: A Reference Manual</h3>
+        <p><strong>Harbison & Steele.</strong> The definitive C reference. Use as a companion for undefined behavior, types, and the full language spec.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Computer Systems: A Programmer's Perspective</h3>
+        <p><strong>Bryant & O'Hallaron (CS:APP).</strong> Probably the single most important book on this list. Covers x86 assembly, memory hierarchy, linking, concurrency, and system-level I/O.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> CS:APP Lab Videos — CMU</h3>
+        <p>The official CMU course labs for CS:APP. Data lab, bomb lab, attack lab, malloc lab. Do all of them. <a href="https://csapp.cs.cmu.edu/3e/labs.html" target="_blank">csapp.cs.cmu.edu</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Computer Architecture</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Computer Organization and Design (RISC-V)</h3>
+        <p><strong>Patterson & Hennessy.</strong> The canonical architecture textbook. Understand datapaths, pipelining, caches, virtual memory from first principles.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Modern x86 Assembly Language Programming</h3>
+        <p><strong>Daniel Kusswurm.</strong> x86-64 assembly with SIMD, AVX, and system programming patterns. Essential for writing bootloaders and low-level kernel code.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> Nand2Tetris — Coursera</h3>
+        <p>Build a computer from logic gates up. Extraordinary for deeply understanding how hardware abstractions layer. Free on <a href="https://www.nand2tetris.org" target="_blank">nand2tetris.org</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Art of 64-bit Assembly</h3>
+        <p><strong>Randall Hyde.</strong> Modern, comprehensive x86-64 assembly. Free online. <a href="https://artofasm.randallhyde.com" target="_blank">artofasm.randallhyde.com</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Phase 1 Milestones</div>
+    <div class="card">
+      <div class="milestone"><div class="ms-num">1</div><div class="ms-body"><h4>Implement malloc/free from scratch</h4><p>Explicit free list, coalescing, boundary tags. Pass all CS:APP malloc lab tests.</p></div></div>
+      <div class="milestone"><div class="ms-num">2</div><div class="ms-body"><h4>Write a working shell in C</h4><p>fork(), exec(), pipes, signal handling, job control. This tests your UNIX system programming fluency.</p></div></div>
+      <div class="milestone"><div class="ms-num">3</div><div class="ms-body"><h4>x86 assembly bootloader</h4><p>Write a bootloader in raw x86 assembly that boots, prints to screen, enters protected mode. BIOS or UEFI.</p></div></div>
+      <div class="milestone"><div class="ms-num">4</div><div class="ms-body"><h4>Disassemble and annotate a real binary</h4><p>Take a small C program, disassemble it, annotate every instruction. Understand the ABI, stack frames, calling conventions.</p></div></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('Give me a detailed study plan for Phase 1 of the OS/browser roadmap — C, assembly, and architecture')">Ask Claude for a detailed Phase 1 study plan ↗</button>
+  </div>
+
+  <!-- PHASE 2: KERNEL -->
+  <div class="phase" id="phase-kernel">
+    <div class="phase-header">
+      <span class="badge" style="background:#EEEDFE;color:#3C3489;">Phase 2 · ~12–18 months</span>
+      <h2>Kernel development — the heart of your OS</h2>
+      <p>You will build a monolithic kernel targeting x86-64. Study existing kernels obsessively. Linux and xv6 are your teachers.</p>
+    </div>
+
+    <div class="section-title">Essential Reading</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Operating Systems: Three Easy Pieces</h3>
+        <p><strong>Arpaci-Dusseau (OSTEP).</strong> Free online. The best modern OS textbook. Virtualization, concurrency, persistence — covers everything at depth. <a href="https://ostep.org" target="_blank">ostep.org</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Lions' Commentary on UNIX 6th Edition</h3>
+        <p><strong>John Lions.</strong> Classic source code walkthrough of UNIX. Deep understanding of a real OS from its creators' generation. Foundational.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Linux Kernel Development</h3>
+        <p><strong>Robert Love.</strong> The most readable tour of the Linux kernel internals. Process scheduler, memory management, VFS, networking. Read front-to-back.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Understanding the Linux Kernel</h3>
+        <p><strong>Bovet & Cesati.</strong> Deeper, denser. Every data structure, every algorithm. Use as reference alongside Love's book.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Design of the UNIX Operating System</h3>
+        <p><strong>Maurice Bach.</strong> Timeless. Covers process model, file system, device drivers, IPC. The mental model here maps directly to Linux.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Modern Operating Systems</h3>
+        <p><strong>Andrew Tanenbaum.</strong> Rigorous theory with MINIX as reference. Strong on microkernel concepts, scheduling theory, distributed systems.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Project-Based Learning</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> xv6 — MIT's Teaching OS</h3>
+        <p>A small, clean UNIX-like OS written in C for RISC-V and x86. Read every line. Then implement all the labs. Then extend it. <a href="https://pdos.csail.mit.edu/6.828/2022/xv6.html" target="_blank">MIT 6.1810</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> OSDev Wiki</h3>
+        <p>The bible of OS development. Bootloaders, GDT, IDT, paging, keyboard, VGA, ACPI, SMP. Bookmark everything. <a href="https://wiki.osdev.org" target="_blank">wiki.osdev.org</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> Write Your Own OS — YouTube</h3>
+        <p><strong>Nanobyte</strong> channel. Outstanding series building an x86-64 OS from scratch. Bootloader → protected mode → long mode → kernel. Highly recommended.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> MIT 6.1810 OS Engineering</h3>
+        <p>Full course lectures on YouTube. Covers xv6 implementation in depth. Top-tier instruction from MIT professors. Pair with the labs.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Kernel Subsystems to Implement (in order)</div>
+    <div class="card">
+      <div class="milestone"><div class="ms-num">1</div><div class="ms-body"><h4>Bootloader + protected/long mode</h4><p>BIOS or UEFI, real → protected → 64-bit long mode, load kernel ELF, set up stack.</p></div></div>
+      <div class="milestone"><div class="ms-num">2</div><div class="ms-body"><h4>GDT, IDT, exception handling</h4><p>Global Descriptor Table, Interrupt Descriptor Table, page faults, general protection faults, timer IRQ.</p></div></div>
+      <div class="milestone"><div class="ms-num">3</div><div class="ms-body"><h4>Physical memory manager</h4><p>Bitmap or buddy allocator. Track free/used frames. Parse memory map from bootloader.</p></div></div>
+      <div class="milestone"><div class="ms-num">4</div><div class="ms-body"><h4>Virtual memory + paging</h4><p>4-level page tables, kernel/user space split, page fault handler, demand paging.</p></div></div>
+      <div class="milestone"><div class="ms-num">5</div><div class="ms-body"><h4>Process & thread model</h4><p>PCB/TCB, context switching in assembly, scheduler (start with round-robin, then CFS-like).</p></div></div>
+      <div class="milestone"><div class="ms-num">6</div><div class="ms-body"><h4>System call interface</h4><p>SYSCALL/SYSRET, user/kernel privilege boundary, system call table, argument passing.</p></div></div>
+      <div class="milestone"><div class="ms-num">7</div><div class="ms-body"><h4>VFS + file systems</h4><p>Virtual filesystem layer, then implement ext2 or FAT32, then your own FS.</p></div></div>
+      <div class="milestone"><div class="ms-num">8</div><div class="ms-body"><h4>Device drivers</h4><p>PCI enumeration, keyboard (PS/2 + USB HID), NVMe/AHCI storage, network card (e1000).</p></div></div>
+    </div>
+
+    <button class="ask-btn" onclick="sendPrompt('Walk me through implementing a physical memory manager (buddy allocator) for my OS kernel from scratch')">Deep dive: buddy allocator implementation ↗</button>
+  </div>
+
+  <!-- PHASE 3: FULL OS -->
+  <div class="phase" id="phase-os-advanced">
+    <div class="phase-header">
+      <span class="badge" style="background:#E1F5EE;color:#085041;">Phase 3 · ~12–18 months</span>
+      <h2>Full OS — userspace, networking, and security</h2>
+      <p>The kernel is just the beginning. A real OS needs a userspace, libc, shell, networking stack, and security model. This phase makes it production-worthy.</p>
+    </div>
+
+    <div class="section-title">Networking</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> TCP/IP Illustrated, Vol. 1 & 2</h3>
+        <p><strong>Richard Stevens.</strong> The definitive networking reference. Vol 1: protocols. Vol 2: the BSD implementation. You will implement a TCP/IP stack — this is your guide.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Computer Networks: A Systems Approach</h3>
+        <p><strong>Peterson & Davie.</strong> Excellent system-level networking book. Strong on implementation details. Free online. <a href="https://book.systemsapproach.org" target="_blank">systemsapproach.org</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Security & OS Hardening</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Art of Exploitation</h3>
+        <p><strong>Jon Erickson.</strong> Understand exploitation to defend against it. Stack/heap overflows, shellcode, return-oriented programming. Essential for hardening your kernel.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Secure Coding in C and C++</h3>
+        <p><strong>Robert Seacord.</strong> Every pitfall in systems programming. Integer overflows, format strings, race conditions. Read before you ship any kernel code.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Userspace & libc</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Linux Programming Interface</h3>
+        <p><strong>Michael Kerrisk.</strong> 1500 pages on Linux system programming. The reference for building a POSIX-compliant userspace on top of your kernel.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> musl libc source</h3>
+        <p>Read musl libc — a clean, readable POSIX C library. Model your own libc on it. Smaller and cleaner than glibc. <a href="https://musl.libc.org" target="_blank">musl.libc.org</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Advanced Scheduler & Concurrency</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Art of Multiprocessor Programming</h3>
+        <p><strong>Herlihy & Shavit.</strong> Lock-free data structures, memory models, CAS operations. Essential for your SMP kernel with a scalable scheduler.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Is Parallel Programming Hard? (perfbook)</h3>
+        <p><strong>Paul McKenney.</strong> The RCU expert's free book on parallel programming at kernel scale. Memory barriers, locking, RCU. <a href="https://mirrors.edge.kernel.org/pub/linux/kernel/people/paulmck/perfbook/perfbook.html" target="_blank">Free PDF</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Phase 3 Milestones</div>
+    <div class="card">
+      <div class="milestone"><div class="ms-num">1</div><div class="ms-body"><h4>TCP/IP stack from scratch</h4><p>Ethernet, ARP, IPv4, ICMP, UDP, TCP with handshake, flow control, retransmission.</p></div></div>
+      <div class="milestone"><div class="ms-num">2</div><div class="ms-body"><h4>Port a minimal libc</h4><p>Implement or port musl libc. Get printf, malloc, file I/O, pthreads working on your kernel.</p></div></div>
+      <div class="milestone"><div class="ms-num">3</div><div class="ms-body"><h4>Port bash or build a shell</h4><p>Get a real shell running. This validates your system call interface and process model.</p></div></div>
+      <div class="milestone"><div class="ms-num">4</div><div class="ms-body"><h4>SMP support</h4><p>APIC, multi-core boot, per-CPU data, SMP-safe locking, load balancing scheduler.</p></div></div>
+      <div class="milestone"><div class="ms-num">5</div><div class="ms-body"><h4>Security: capabilities + KASLR + SMEP/SMAP</h4><p>Privilege model, kernel ASLR, supervisor mode execution/access prevention.</p></div></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('How do I implement a TCP/IP stack in my OS kernel from scratch? Walk me through the architecture')">How to implement a TCP/IP stack ↗</button>
+  </div>
+
+  <!-- PHASE 4: BROWSER ENGINE -->
+  <div class="phase" id="phase-browser-engine">
+    <div class="phase-header">
+      <span class="badge" style="background:#E1F5EE;color:#085041;">Phase 4 · ~12–18 months</span>
+      <h2>Browser engine core — HTML, CSS, and rendering</h2>
+      <p>A browser engine is one of the most complex software systems ever built. You will build a full rendering engine: HTML parser → DOM → style → layout → paint → composite.</p>
+    </div>
+
+    <div class="section-title">Essential Theory</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Web Browser Engineering</h3>
+        <p><strong>Pavel Panchekha & Chris Harrelson.</strong> Build a browser from scratch in Python, then translate to C/C++/Rust. The ONLY book specifically on browser internals. Free online. <a href="https://browser.engineering" target="_blank">browser.engineering</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> "How Browsers Work" — Tali Garsiel</h3>
+        <p>The legendary 2011 article, still the best overview of browser rendering pipeline internals. Read this first, read it again later. <a href="https://web.dev/articles/howbrowserswork" target="_blank">web.dev</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> Inside look at modern web browser — Google</h3>
+        <p>4-part series by Google engineers on Chrome's multi-process architecture, compositor threading, and rendering pipeline. Essential mental model.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> Servo — Mozilla's research browser</h3>
+        <p>Read the Servo source (Rust). It's the cleanest modern browser engine codebase for learning. Parallel layout, WebRender. <a href="https://github.com/servo/servo" target="_blank">github.com/servo/servo</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Specifications (must read)</div>
+    <div class="card">
+      <ul>
+        <li><strong>HTML Living Standard</strong> — <a href="https://html.spec.whatwg.org" target="_blank">html.spec.whatwg.org</a> — Parsing algorithm, tokenizer state machine, DOM construction</li>
+        <li><strong>CSS Specifications</strong> — <a href="https://drafts.csswg.org" target="_blank">drafts.csswg.org</a> — Cascading, specificity, box model, flexbox, grid</li>
+        <li><strong>CSS Layout API / Houdini</strong> — Understanding the layout worklet API clarifies the box model deeply</li>
+        <li><strong>Encoding Standard</strong> — Character encoding handling, UTF-8, BOM detection</li>
+        <li><strong>URL Standard</strong> — URL parsing is surprisingly complex and spec-defined</li>
+        <li><strong>Fetch Standard</strong> — HTTP fetching model, CORS, credentials</li>
+      </ul>
+    </div>
+
+    <div class="section-title">Rendering & Graphics</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Real-Time Rendering, 4th Ed.</h3>
+        <p><strong>Akenine-Möller et al.</strong> GPU rendering pipeline, shading, compositing. Essential for your GPU-accelerated paint stage and compositor.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Computer Graphics: Principles and Practice</h3>
+        <p><strong>Hughes, van Dam et al.</strong> From rasterization to ray tracing. Understanding 2D rasterization is fundamental to text rendering, bezier curves, SVG.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Digital Typography — Donald Knuth</h3>
+        <p>Text rendering is brutally hard — font metrics, hinting, subpixel rendering, kerning, ligatures, bidirectional text. Start with HarfBuzz and FreeType, but understand the theory.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> Skia Graphics Library</h3>
+        <p>Chrome's 2D graphics library. Study the architecture. You'll either use it, fork it, or build something similar. <a href="https://skia.org" target="_blank">skia.org</a></p>
+      </div>
+    </div>
+
+    <div class="section-title">Rendering Pipeline: Build Order</div>
+    <div class="card">
+      <div class="milestone"><div class="ms-num">1</div><div class="ms-body"><h4>HTML tokenizer + tree construction</h4><p>Implement the WHATWG tokenizer state machine exactly. It's 80+ states. Do not shortcut this.</p></div></div>
+      <div class="milestone"><div class="ms-num">2</div><div class="ms-body"><h4>CSS parser + cascade</h4><p>Tokenize CSS, build CSSOM, compute specificity, apply cascade. Implement inheritance.</p></div></div>
+      <div class="milestone"><div class="ms-num">3</div><div class="ms-body"><h4>Style resolution</h4><p>Attach computed styles to DOM nodes. Handle pseudo-classes, pseudo-elements, media queries.</p></div></div>
+      <div class="milestone"><div class="ms-num">4</div><div class="ms-body"><h4>Layout engine</h4><p>Box model, block layout, inline layout, floats, flexbox. This is the hardest part of a browser engine.</p></div></div>
+      <div class="milestone"><div class="ms-num">5</div><div class="ms-body"><h4>Paint + rasterization</h4><p>Walk the paint tree, issue draw commands, rasterize to pixels. Start with a CPU rasterizer.</p></div></div>
+      <div class="milestone"><div class="ms-num">6</div><div class="ms-body"><h4>GPU compositing</h4><p>Layer promotion, tile-based rendering, GPU upload, OpenGL/Vulkan compositing. Chrome's approach is the reference.</p></div></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('Explain the browser layout engine in depth — block formatting context, inline formatting context, floats, and BFC isolation')">Deep dive: layout engine internals ↗</button>
+  </div>
+
+  <!-- PHASE 5: FULL BROWSER -->
+  <div class="phase" id="phase-browser-advanced">
+    <div class="phase-header">
+      <span class="badge" style="background:#FAECE7;color:#4A1B0C;">Phase 5 · ~12–18 months</span>
+      <h2>Full browser — JavaScript engine, networking, and security</h2>
+      <p>A rendering engine without JavaScript is a PDF viewer. This phase adds a JS engine, the network stack, and browser security architecture.</p>
+    </div>
+
+    <div class="section-title">JavaScript Engine</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Crafting Interpreters</h3>
+        <p><strong>Robert Nystrom.</strong> Build a bytecode VM from scratch. Best introduction to language implementation. Free online. <a href="https://craftinginterpreters.com" target="_blank">craftinginterpreters.com</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Engineering a Compiler</h3>
+        <p><strong>Cooper & Torczon.</strong> Production-grade compiler theory. SSA form, register allocation, instruction selection. Necessary for a JIT compiler.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Writing an Interpreter/Compiler in Go</h3>
+        <p><strong>Thorsten Ball.</strong> Two-book series. Lexer → parser → AST → bytecode → VM. Extremely clear prose. Great warmup before tackling a JS engine.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> V8, SpiderMonkey & JavaScriptCore source</h3>
+        <p>Read and study all three engines. V8's Ignition + Turbofan, SpiderMonkey's WarpMonkey, JSC's DFG/FTL. The JS spec is ECMA-262. <a href="https://tc39.es/ecma262" target="_blank">tc39.es</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Virtual Machines — Smith & Nair</h3>
+        <p>Process VMs, language runtimes, JIT compilation theory. Essential for understanding how a production JS engine works under the hood.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-video">Video</span> Franziska Hinkelmann — JS engines YouTube talks</h3>
+        <p>V8 team engineer's talks on hidden classes, inline caches, and JIT compilation. Concrete, low-level, highly recommended.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Browser Networking</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> High Performance Browser Networking</h3>
+        <p><strong>Ilya Grigorik.</strong> HTTP/1.1, HTTP/2, HTTP/3, QUIC, WebSockets, WebRTC. Free online. The definitive guide to browser networking. <a href="https://hpbn.co" target="_blank">hpbn.co</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> HTTP: The Definitive Guide</h3>
+        <p><strong>Gourley et al.</strong> Every HTTP concept: caching, authentication, HTTPS, connection management. Essential for your browser's network layer.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Browser Security</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Web Application Hacker's Handbook</h3>
+        <p>XSS, CSRF, clickjacking, SQL injection — understand all attacks to build defenses. Your browser must defend against the entire web.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> The Tangled Web</h3>
+        <p><strong>Michal Zalewski.</strong> The security model of the web — same-origin policy, content sniffing, MIME types, security headers. Written by a Google security researcher.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Phase 5 Milestones</div>
+    <div class="card">
+      <div class="milestone"><div class="ms-num">1</div><div class="ms-body"><h4>Build a bytecode interpreter for ES5</h4><p>Lexer → parser → AST → bytecode → VM. Get a basic JS subset running in your engine.</p></div></div>
+      <div class="milestone"><div class="ms-num">2</div><div class="ms-body"><h4>Add a JIT compiler</h4><p>Profile the bytecode interpreter, identify hot functions, compile to native x86-64 machine code using a simple JIT. Study V8's Ignition/Turbofan split.</p></div></div>
+      <div class="milestone"><div class="ms-num">3</div><div class="ms-body"><h4>Garbage collector</h4><p>Implement a generational GC. Young/old generation, minor/major GC, write barriers, card tables.</p></div></div>
+      <div class="milestone"><div class="ms-num">4</div><div class="ms-body"><h4>HTTP/2 client + TLS 1.3</h4><p>HPACK header compression, stream multiplexing, TLS 1.3 with modern cipher suites.</p></div></div>
+      <div class="milestone"><div class="ms-num">5</div><div class="ms-body"><h4>Site isolation + sandboxing</h4><p>Multi-process architecture, process-per-site, renderer sandbox. Study Chromium's architecture.</p></div></div>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('How do I build a JIT compiler for a JavaScript engine? Explain the architecture of Ignition and Turbofan')">How to build a JIT compiler ↗</button>
+  </div>
+
+  <!-- PHASE 6: PRODUCTION -->
+  <div class="phase" id="phase-production">
+    <div class="phase-header">
+      <span class="badge" style="background:#FAECE7;color:#4A1B0C;">Phase 6 · Ongoing</span>
+      <h2>Production — performance, tooling, and shipping</h2>
+      <p>The gap between a working prototype and a production system is enormous. This phase covers the engineering discipline needed to ship something world-class.</p>
+    </div>
+
+    <div class="section-title">Performance Engineering</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Systems Performance, 2nd Ed.</h3>
+        <p><strong>Brendan Gregg.</strong> The bible of performance analysis. CPU, memory, I/O, network profiling. BPF, perf, flamegraphs. Use this to profile and optimize every layer of your OS and browser.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> BPF Performance Tools</h3>
+        <p><strong>Brendan Gregg.</strong> eBPF for tracing and profiling at kernel level. Write BPF programs to analyze your OS's own behavior in production.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Every Computer Performance Book</h3>
+        <p><strong>Bob Wescott.</strong> Queuing theory, capacity planning, throughput vs. latency tradeoffs. Helps you design performant kernel subsystems analytically.</p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-book">Book</span> Structured Computer Organization</h3>
+        <p><strong>Andrew Tanenbaum.</strong> Cache coherency, NUMA architectures, memory hierarchies. Critical for squeezing performance from multi-socket hardware.</p></div>
+    </div>
+
+    <div class="section-title">Build Systems, Testing & DevOps</div>
+    <div class="two-col">
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> WPT — Web Platform Tests</h3>
+        <p>The official test suite for browser compatibility. Run WPT against your browser. Passing WPT is the bar for a real browser. <a href="https://web-platform-tests.org" target="_blank">web-platform-tests.org</a></p>
+      </div>
+      <div class="card">
+        <h3><span class="tag tag-proj">Project</span> POSIX conformance tests</h3>
+        <p>LSB (Linux Standard Base) test suite. Run against your OS to validate POSIX compliance. Also run LTP (Linux Test Project) for kernel testing.</p>
+      </div>
+    </div>
+
+    <div class="section-title">Advanced Topics to Master</div>
+    <div class="card">
+      <ul>
+        <li><strong>WebAssembly (WASM)</strong> — Implement a WASM runtime in your browser engine. Spec: <a href="https://webassembly.github.io/spec" target="_blank">webassembly.github.io/spec</a></li>
+        <li><strong>WebGPU / WebGL</strong> — GPU API surface in the browser. Implement the JS API layer over your Vulkan/OpenGL backend.</li>
+        <li><strong>Accessibility tree (AX tree)</strong> — ARIA roles, accessibility tree construction. Non-negotiable for a real browser.</li>
+        <li><strong>Internationalization</strong> — Unicode, bidirectional text (BIDI), complex scripts (Arabic, Devanagari). HarfBuzz + ICU.</li>
+        <li><strong>Spectre/Meltdown mitigations</strong> — Site isolation, timer jitter, process model decisions are all driven by hardware vulnerabilities.</li>
+        <li><strong>Power management (ACPI)</strong> — Sleep states, CPU frequency scaling, battery management for your OS.</li>
+        <li><strong>Display server / Wayland</strong> — Implement a Wayland compositor or DRM/KMS direct rendering for your OS's GUI layer.</li>
+      </ul>
+    </div>
+
+    <div class="section-title">Communities to join right now</div>
+    <div class="card">
+      <ul>
+        <li><strong>OSDev forums</strong> — <a href="https://forum.osdev.org" target="_blank">forum.osdev.org</a> — The #1 community for OS developers</li>
+        <li><strong>SerenityOS Discord</strong> — Active OS + browser dev community, very welcoming</li>
+        <li><strong>Kernel Newbies</strong> — <a href="https://kernelnewbies.org" target="_blank">kernelnewbies.org</a> — Linux kernel contribution community</li>
+        <li><strong>LKML (Linux Kernel Mailing List)</strong> — Read patches, follow discussions. Invaluable for learning kernel engineering culture.</li>
+        <li><strong>Servo contributors</strong> — Open source Rust browser engine. Contributing here teaches you browser engineering at a professional level.</li>
+        <li><strong>Lobsters & HN</strong> — Follow the "systems" and "kernel" tags for cutting-edge discussions</li>
+      </ul>
+    </div>
+    <button class="ask-btn" onclick="sendPrompt('What are the biggest technical challenges in building a production OS and browser, and how do teams like Linux and Chrome solve them?')">What are the biggest challenges ahead? ↗</button>
+  </div>
+</div>
+
+<script>
+function show(id) {
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('phase-' + id).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>

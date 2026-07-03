@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reachly — Get Hired, Not Filtered</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #080A0F; --surface: #0D1117; --surface2: #131920;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --text: #E8EDF5; --muted: #6B7A90;
+    --accent: #00D4FF; --accent2: #7B61FF; --accent3: #00FFB3;
+    --gold: #F5C842; --danger: #FF6B6B;
+    --serif: 'Instrument Serif', serif; --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); overflow-x: hidden; cursor: none; }
+
+  .cursor { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9999; transition: transform 0.1s ease; mix-blend-mode: screen; }
+  .cursor-ring { width: 32px; height: 32px; border: 1px solid rgba(0,212,255,0.4); border-radius: 50%; position: fixed; pointer-events: none; z-index: 9998; transition: all 0.15s ease; }
+
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 100; opacity: 0.6; }
+  body::after { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 60px 60px; pointer-events: none; z-index: 0; }
+
+  nav { position: fixed; top: 0; left: 0; right: 0; z-index: 500; padding: 20px 48px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(180deg, rgba(8,10,15,0.95) 0%, transparent 100%); backdrop-filter: blur(8px); }
+  .nav-logo { font-family: var(--sans); font-weight: 800; font-size: 18px; letter-spacing: -0.5px; color: var(--text); text-decoration: none; }
+  .nav-logo span { color: var(--accent); }
+  .nav-links { display: flex; gap: 28px; list-style: none; }
+  .nav-links a { font-family: var(--mono); font-size: 12px; color: var(--muted); text-decoration: none; letter-spacing: 0.05em; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-cta { background: var(--accent); color: var(--bg); padding: 10px 24px; border-radius: 2px; font-family: var(--mono); font-size: 12px; font-weight: 500; text-decoration: none; letter-spacing: 0.05em; transition: all 0.2s; }
+  .nav-cta:hover { background: #fff; }
+
+  .hero { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding: 120px 48px 80px; position: relative; z-index: 1; overflow: hidden; }
+  .hero-orb { position: absolute; border-radius: 50%; filter: blur(100px); pointer-events: none; }
+  .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(0,212,255,0.12) 0%, transparent 70%); top: -100px; right: -100px; animation: orb-drift 8s ease-in-out infinite alternate; }
+  .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, rgba(123,97,255,0.1) 0%, transparent 70%); bottom: 0; left: 30%; animation: orb-drift 12s ease-in-out infinite alternate-reverse; }
+  @keyframes orb-drift { from { transform: translate(0,0) scale(1); } to { transform: translate(30px,40px) scale(1.05); } }
+
+  .hero-tag { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; border: 1px solid rgba(0,212,255,0.3); padding: 6px 14px; border-radius: 2px; margin-bottom: 40px; display: inline-block; background: rgba(0,212,255,0.05); animation: fade-up 0.8s ease both; }
+  .hero-headline { font-family: var(--serif); font-size: clamp(52px,7vw,96px); line-height: 1.0; letter-spacing: -2px; color: var(--text); max-width: 800px; animation: fade-up 0.8s 0.1s ease both; }
+  .hero-headline em { font-style: italic; color: var(--accent); }
+  .hero-headline .line2 { color: var(--muted); }
+  .hero-sub { font-family: var(--mono); font-size: 14px; color: var(--muted); line-height: 1.8; max-width: 520px; margin-top: 32px; animation: fade-up 0.8s 0.2s ease both; }
+  .hero-actions { display: flex; gap: 16px; align-items: center; margin-top: 48px; animation: fade-up 0.8s 0.3s ease both; }
+  .btn-primary { background: var(--accent); color: var(--bg); padding: 14px 32px; border-radius: 2px; font-family: var(--mono); font-size: 13px; font-weight: 500; text-decoration: none; letter-spacing: 0.05em; transition: all 0.2s; position: relative; overflow: hidden; }
+  .btn-primary::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0.2); transform: translateX(-100%); transition: transform 0.3s ease; }
+  .btn-primary:hover::after { transform: translateX(0); }
+  .btn-ghost { color: var(--muted); font-family: var(--mono); font-size: 13px; text-decoration: none; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px; transition: color 0.2s; }
+  .btn-ghost:hover { color: var(--text); }
+  .btn-ghost svg { transition: transform 0.2s; }
+  .btn-ghost:hover svg { transform: translateX(4px); }
+
+  .hero-stats { display: flex; gap: 48px; margin-top: 80px; padding-top: 48px; border-top: 1px solid var(--border); animation: fade-up 0.8s 0.4s ease both; }
+  .stat-num { font-family: var(--serif); font-size: 36px; color: var(--text); display: block; }
+  .stat-num span { color: var(--accent); }
+  .stat-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+
+  .ticker-wrap { overflow: hidden; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 16px 0; background: var(--surface); position: relative; z-index: 1; }
+  .ticker { display: flex; animation: ticker 35s linear infinite; width: max-content; }
+  .ticker-item { display: flex; align-items: center; gap: 24px; padding: 0 32px; font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .ticker-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  @keyframes fade-up { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+
+  section { position: relative; z-index: 1; padding: 120px 48px; }
+  .section-tag { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+  .section-tag::before { content: ''; width: 24px; height: 1px; background: var(--accent); display: block; }
+  .section-title { font-family: var(--serif); font-size: clamp(36px,4vw,56px); line-height: 1.1; letter-spacing: -1px; color: var(--text); max-width: 620px; }
+  .section-title em { font-style: italic; color: var(--accent); }
+  .section-body { font-family: var(--mono); font-size: 14px; color: var(--muted); line-height: 1.8; max-width: 480px; margin-top: 20px; }
+
+  /* PROBLEM */
+  .problem { background: var(--surface); }
+  .problem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 64px; border: 1px solid var(--border); }
+  .problem-card { padding: 40px; background: var(--bg); border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); position: relative; overflow: hidden; transition: background 0.3s; }
+  .problem-card:hover { background: var(--surface2); }
+  .problem-card:nth-child(2n) { border-right: none; }
+  .problem-card:nth-last-child(-n+2) { border-bottom: none; }
+  .problem-num { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; margin-bottom: 20px; }
+  .problem-icon { font-size: 28px; margin-bottom: 16px; display: block; }
+  .problem-card h3 { font-family: var(--sans); font-weight: 600; font-size: 18px; color: var(--text); margin-bottom: 12px; }
+  .problem-card p { font-family: var(--mono); font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .problem-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,var(--danger),transparent); opacity: 0; transition: opacity 0.3s; }
+  .problem-card:hover::before { opacity: 1; }
+
+  /* HOW IT WORKS */
+  .how { background: var(--bg); }
+  .how-layout { display: grid; grid-template-columns: 1fr 1.2fr; gap: 80px; align-items: start; margin-top: 64px; }
+  .steps-list { display: flex; flex-direction: column; }
+  .step { display: flex; gap: 24px; padding: 32px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.3s; }
+  .step:first-child { padding-top: 0; }
+  .step.active .step-num { background: var(--accent); color: var(--bg); }
+  .step.active .step-title { color: var(--accent); }
+  .step-num { width: 32px; height: 32px; border: 1px solid var(--border2); border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; color: var(--muted); flex-shrink: 0; margin-top: 2px; transition: all 0.3s; }
+  .step-title { font-family: var(--sans); font-weight: 600; font-size: 16px; color: var(--text); margin-bottom: 8px; transition: color 0.3s; }
+  .step-desc { font-family: var(--mono); font-size: 13px; color: var(--muted); line-height: 1.7; }
+  .step-visual { position: sticky; top: 120px; height: 500px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .visual-panel { display: none; width: 100%; height: 100%; padding: 32px; flex-direction: column; gap: 14px; }
+  .visual-panel.active { display: flex; animation: fade-in 0.4s ease; }
+  @keyframes fade-in { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+  .vis-header { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .vis-card { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 14px 18px; }
+  .vis-card-title { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .vis-card-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .vis-tag { display: inline-block; padding: 4px 10px; border-radius: 2px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; }
+  .tag-green { background: rgba(0,255,179,0.1); color: var(--accent3); border: 1px solid rgba(0,255,179,0.2); }
+  .tag-blue { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.2); }
+  .tag-purple { background: rgba(123,97,255,0.1); color: var(--accent2); border: 1px solid rgba(123,97,255,0.2); }
+  .tag-gold { background: rgba(245,200,66,0.1); color: var(--gold); border: 1px solid rgba(245,200,66,0.2); }
+  .tag-red { background: rgba(255,107,107,0.1); color: var(--danger); border: 1px solid rgba(255,107,107,0.2); }
+
+  .vis-bar-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .vis-bar-row { display: flex; align-items: center; gap: 12px; }
+  .vis-bar-label { font-family: var(--mono); font-size: 11px; color: var(--muted); width: 80px; flex-shrink: 0; }
+  .vis-bar-track { flex: 1; height: 6px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .vis-bar-fill { height: 100%; border-radius: 1px; animation: bar-grow 1s ease both; }
+  @keyframes bar-grow { from { width: 0 !important; } }
+  .vis-score { font-family: var(--mono); font-size: 11px; color: var(--muted); width: 32px; text-align: right; }
+
+  .recruiter-list { display: flex; flex-direction: column; gap: 8px; }
+  .recruiter-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; transition: border-color 0.2s; }
+  .recruiter-row:hover { border-color: var(--border2); }
+  .recruiter-avatar { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+  .recruiter-info { flex: 1; }
+  .recruiter-name { font-family: var(--sans); font-size: 12px; font-weight: 600; color: var(--text); }
+  .recruiter-role { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .platform-badges { display: flex; gap: 4px; }
+  .platform-badge { width: 18px; height: 18px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 9px; background: var(--surface2); border: 1px solid var(--border); }
+
+  .outreach-preview { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 18px; flex: 1; }
+  .outreach-line { font-family: var(--mono); font-size: 12px; color: var(--text); line-height: 1.8; }
+  .outreach-highlight { color: var(--accent); }
+  .typing-cursor { display: inline-block; width: 2px; height: 14px; background: var(--accent); animation: blink 1s step-end infinite; margin-left: 2px; vertical-align: middle; }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+
+  .resume-diff { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+  .diff-row { padding: 10px 14px; border-radius: 3px; font-family: var(--mono); font-size: 11px; line-height: 1.6; border-left: 3px solid transparent; }
+  .diff-removed { background: rgba(255,107,107,0.06); border-left-color: var(--danger); color: #FF6B6B99; text-decoration: line-through; }
+  .diff-added { background: rgba(0,255,179,0.06); border-left-color: var(--accent3); color: var(--accent3); }
+  .diff-neutral { background: var(--surface2); border-left-color: var(--border2); color: var(--muted); }
+
+  /* EXTENSION SECTION */
+  .extension { background: var(--surface); }
+  .ext-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; margin-top: 64px; }
+  .ext-flow { display: flex; flex-direction: column; gap: 0; }
+  .ext-step { display: flex; gap: 20px; padding: 24px 0; border-bottom: 1px solid var(--border); position: relative; }
+  .ext-step:last-child { border-bottom: none; }
+  .ext-step-icon { width: 36px; height: 36px; border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; border: 1px solid var(--border2); background: var(--surface2); }
+  .ext-step-title { font-family: var(--sans); font-weight: 600; font-size: 14px; color: var(--text); margin-bottom: 4px; }
+  .ext-step-desc { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .ext-connector { width: 1px; height: 16px; background: var(--border); margin-left: 17px; }
+
+  .ext-visual { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .ext-browser-bar { background: var(--surface2); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .ext-browser-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .ext-browser-url { flex: 1; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; padding: 4px 10px; font-family: var(--mono); font-size: 10px; color: var(--muted); margin: 0 8px; }
+  .ext-browser-icon { width: 20px; height: 20px; border-radius: 3px; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--bg); font-family: var(--sans); }
+  .ext-content { padding: 20px; }
+  .ext-linkedin-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 16px; margin-bottom: 12px; }
+  .ext-li-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .ext-li-avatar { width: 40px; height: 40px; border-radius: 50%; background: rgba(0,212,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .ext-li-name { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text); }
+  .ext-li-title { font-family: var(--mono); font-size: 10px; color: var(--muted); }
+  .ext-overlay { background: var(--bg); border: 1px solid rgba(0,212,255,0.3); border-radius: 4px; padding: 12px 14px; position: relative; }
+  .ext-overlay-tag { font-family: var(--mono); font-size: 9px; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+  .ext-overlay-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 1.5s ease infinite; display: block; }
+  .ext-overlay-msg { font-family: var(--mono); font-size: 11px; color: var(--text); line-height: 1.6; margin-bottom: 10px; }
+  .ext-actions { display: flex; gap: 8px; }
+  .ext-btn { padding: 6px 14px; border-radius: 2px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; cursor: pointer; border: none; transition: all 0.2s; }
+  .ext-btn-primary { background: var(--accent); color: var(--bg); }
+  .ext-btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border2); }
+  .ext-limit { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; padding: 8px 12px; background: rgba(245,200,66,0.06); border: 1px solid rgba(245,200,66,0.15); border-radius: 3px; }
+  .ext-limit-text { font-family: var(--mono); font-size: 10px; color: var(--gold); }
+  .ext-limit-bar { width: 80px; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .ext-limit-fill { height: 100%; width: 35%; background: var(--gold); border-radius: 2px; }
+
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+  /* FEATURES */
+  .features { background: var(--bg); }
+  .features-header { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: end; margin-bottom: 80px; }
+  .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; background: var(--border); }
+  .feature-cell { background: var(--surface); padding: 40px 36px; position: relative; overflow: hidden; transition: background 0.3s; }
+  .feature-cell:hover { background: var(--surface2); }
+  .feature-cell::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,var(--accent),transparent); opacity: 0; transition: opacity 0.3s; }
+  .feature-cell:hover::after { opacity: 1; }
+  .feature-icon { width: 44px; height: 44px; border: 1px solid var(--border2); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 24px; transition: border-color 0.3s; }
+  .feature-cell:hover .feature-icon { border-color: var(--accent); }
+  .feature-cell h3 { font-family: var(--sans); font-weight: 700; font-size: 16px; color: var(--text); margin-bottom: 12px; letter-spacing: -0.3px; }
+  .feature-cell p { font-family: var(--mono); font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .feature-badge { position: absolute; top: 20px; right: 20px; font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; padding: 4px 10px; border-radius: 2px; }
+  .feature-cell.killer { background: var(--surface2); border: 1px solid rgba(0,212,255,0.15); }
+  .feature-cell.killer::before { content: '★ KILLER FEATURE'; position: absolute; top: 0; left: 0; right: 0; padding: 6px; text-align: center; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; background: rgba(0,212,255,0.08); color: var(--accent); border-bottom: 1px solid rgba(0,212,255,0.15); }
+  .feature-cell.killer .feature-icon { margin-top: 24px; border-color: rgba(0,212,255,0.3); }
+
+  /* TECH */
+  .tech { background: var(--surface); }
+  .tech-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; margin-top: 64px; }
+  .tech-group { margin-bottom: 36px; }
+  .tech-group-label { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+  .tech-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .tech-item:last-child { border-bottom: none; }
+  .tech-left { display: flex; align-items: center; gap: 12px; }
+  .tech-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .tech-name { font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--text); }
+  .tech-purpose { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .tech-cost { font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 2px; }
+  .cost-free { background: rgba(0,255,179,0.1); color: var(--accent3); }
+  .cost-once { background: rgba(245,200,66,0.1); color: var(--gold); }
+
+  .tech-visual { display: flex; flex-direction: column; gap: 14px; padding: 32px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; font-family: var(--mono); }
+  .code-line { font-size: 12px; line-height: 1.6; color: var(--muted); }
+  .code-line .kw { color: var(--accent2); }
+  .code-line .str { color: var(--accent3); }
+  .code-line .fn { color: var(--accent); }
+  .code-line .comment { color: #3D4D60; }
+  .code-line .num { color: var(--gold); }
+
+  /* PRICING */
+  .money { background: var(--bg); }
+  .plans-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2px; margin-top: 64px; background: var(--border); }
+  .plan-card { background: var(--surface); padding: 48px 40px; position: relative; overflow: hidden; }
+  .plan-card.featured { background: var(--surface2); border-top: 2px solid var(--accent); }
+  .plan-card.featured::before { content: 'MOST POPULAR'; position: absolute; top: 20px; right: 20px; font-family: var(--mono); font-size: 9px; letter-spacing: 0.15em; color: var(--accent); background: rgba(0,212,255,0.1); padding: 4px 10px; border-radius: 2px; border: 1px solid rgba(0,212,255,0.2); }
+  .plan-name { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .plan-price { font-family: var(--serif); font-size: 48px; color: var(--text); line-height: 1; margin-bottom: 4px; }
+  .plan-price span { font-family: var(--mono); font-size: 16px; color: var(--muted); }
+  .plan-sub { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-bottom: 36px; }
+  .plan-features { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+  .plan-features li { font-family: var(--mono); font-size: 12px; color: var(--muted); display: flex; align-items: flex-start; gap: 10px; line-height: 1.5; }
+  .plan-features li::before { content: '✓'; color: var(--accent3); font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+  .plan-features li.locked { opacity: 0.4; }
+  .plan-features li.locked::before { content: '—'; color: var(--muted); }
+  .plan-features li.killer-feat { color: var(--accent); }
+  .plan-features li.killer-feat::before { content: '★'; color: var(--accent); }
+  .plan-cta { display: block; text-align: center; margin-top: 36px; padding: 12px; border-radius: 2px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em; text-decoration: none; transition: all 0.2s; }
+  .plan-cta-outline { border: 1px solid var(--border2); color: var(--muted); }
+  .plan-cta-outline:hover { border-color: var(--accent); color: var(--accent); }
+  .plan-cta-filled { background: var(--accent); color: var(--bg); }
+  .plan-cta-filled:hover { background: #fff; }
+
+  /* ROADMAP */
+  .roadmap { background: var(--surface); }
+  .roadmap-timeline { margin-top: 64px; position: relative; }
+  .roadmap-timeline::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 1px; background: linear-gradient(180deg,var(--accent),var(--accent2),transparent); }
+  .roadmap-item { display: flex; gap: 40px; padding: 0 0 64px 64px; position: relative; }
+  .roadmap-item::before { content: ''; position: absolute; left: 14px; top: 6px; width: 13px; height: 13px; border: 2px solid var(--accent); border-radius: 50%; background: var(--surface); }
+  .roadmap-item.next::before { border-color: var(--accent2); box-shadow: 0 0 12px rgba(123,97,255,0.4); }
+  .roadmap-phase { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+  .roadmap-timeline-label { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+  .roadmap-meta { flex-shrink: 0; min-width: 80px; }
+  .roadmap-title { font-family: var(--sans); font-weight: 700; font-size: 20px; color: var(--text); margin-bottom: 12px; letter-spacing: -0.3px; }
+  .roadmap-desc { font-family: var(--mono); font-size: 13px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+  .roadmap-features { display: flex; flex-wrap: wrap; gap: 8px; }
+  .roadmap-tag { font-family: var(--mono); font-size: 11px; padding: 5px 12px; border: 1px solid var(--border); border-radius: 2px; color: var(--muted); }
+  .roadmap-tag.hot { border-color: rgba(0,212,255,0.3); color: var(--accent); background: rgba(0,212,255,0.05); }
+
+  /* CAPACITY */
+  .capacity { background: var(--bg); }
+  .capacity-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; margin-top: 64px; background: var(--border); }
+  .cap-card { background: var(--surface); padding: 40px 32px; text-align: center; transition: background 0.3s; }
+  .cap-card:hover { background: var(--surface2); }
+  .cap-num { font-family: var(--serif); font-size: 40px; color: var(--text); display: block; margin-bottom: 4px; }
+  .cap-num em { font-style: normal; color: var(--accent); }
+  .cap-label { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; display: block; margin-bottom: 16px; }
+  .cap-desc { font-family: var(--mono); font-size: 11px; color: var(--muted); line-height: 1.7; }
+  .cap-constraint { font-family: var(--mono); font-size: 10px; color: var(--danger); margin-top: 10px; padding: 4px 10px; background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.15); border-radius: 2px; display: inline-block; }
+
+  footer { background: var(--surface); border-top: 1px solid var(--border); padding: 64px 48px 40px; position: relative; z-index: 1; }
+  .footer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 64px; }
+  .footer-brand h2 { font-family: var(--sans); font-weight: 800; font-size: 24px; color: var(--text); margin-bottom: 8px; }
+  .footer-brand h2 span { color: var(--accent); }
+  .footer-brand p { font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 280px; line-height: 1.7; }
+  .footer-links { display: flex; gap: 64px; }
+  .footer-col h4 { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
+  .footer-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-col a { font-family: var(--mono); font-size: 13px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--text); }
+  .footer-bottom { display: flex; justify-content: space-between; align-items: center; padding-top: 32px; border-top: 1px solid var(--border); }
+  .footer-copy { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .footer-status { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent3); animation: pulse 2s ease infinite; }
+
+  .reveal { opacity: 0; transform: translateY(32px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .divider { width: 100%; height: 1px; background: linear-gradient(90deg,transparent,var(--border2),transparent); position: relative; z-index: 1; }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<nav>
+  <a href="#" class="nav-logo">Reach<span>ly</span></a>
+  <ul class="nav-links">
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#extension">Extension</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#tech">Tech</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+  <a href="#" class="nav-cta">Join Waitlist</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-orb orb-1"></div>
+  <div class="hero-orb orb-2"></div>
+  <div class="hero-tag">Built for the AI job market era</div>
+  <h1 class="hero-headline">
+    Stop applying<br>
+    <em>Start connecting</em><br>
+    <span class="line2">Get hired.</span>
+  </h1>
+  <p class="hero-sub">
+    Reachly finds recruiters across LinkedIn, Twitter/X, and beyond — then its Chrome extension connects you to them, sends your outreach, and tracks every relationship automatically. You just show up to the interview.
+  </p>
+  <div class="hero-actions">
+    <a href="#" class="btn-primary">Get Early Access</a>
+    <a href="#how" class="btn-ghost">
+      See how it works
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item">
+      <span class="stat-num">98<span>%</span></span>
+      <span class="stat-label">of applications go unanswered</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">7<span>x</span></span>
+      <span class="stat-label">higher reply rate via recruiter outreach</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">₦0</span>
+      <span class="stat-label">infrastructure cost at MVP</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num">3<span>min</span></span>
+      <span class="stat-label">to a tailored resume + sent outreach</span>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker">
+    <div class="ticker-item"><span class="ticker-dot"></span>Recruiter Discovery</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Chrome Extension Automation</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>AI Resume Tailoring</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Warm Path Finder ★</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Interview Prep Suite ★</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Recruiter CRM</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Response Analytics</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Job Market Intelligence</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Recruiter Discovery</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Chrome Extension Automation</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>AI Resume Tailoring</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Warm Path Finder ★</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Interview Prep Suite ★</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Recruiter CRM</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Response Analytics</div>
+    <div class="ticker-item"><span class="ticker-dot"></span>Job Market Intelligence</div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<section class="problem reveal" id="problem">
+  <div class="section-tag">The Problem</div>
+  <h2 class="section-title">The job market is <em>broken</em> for entry-level candidates</h2>
+  <p class="section-body">AI made it trivially easy to apply to hundreds of jobs. Recruiters know this. Your resume hits an ATS wall, gets filtered in 6 seconds, and nobody ever sees it. The game changed. The tools haven't.</p>
+  <div class="problem-grid">
+    <div class="problem-card">
+      <div class="problem-num">01</div>
+      <span class="problem-icon">🤖</span>
+      <h3>ATS filters kill applications</h3>
+      <p>75% of resumes are rejected before a human reads them. Applicant Tracking Systems filter by keyword matching — not by actual competence or fit.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">02</div>
+      <span class="problem-icon">🌊</span>
+      <h3>Recruiters are overwhelmed</h3>
+      <p>A single job post now receives 500–1,000+ applications. You're not being ignored — you're drowning in a flood of AI-generated CVs that all look identical.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">03</div>
+      <span class="problem-icon">🤝</span>
+      <h3>Relationships open closed doors</h3>
+      <p>Up to 80% of roles are filled through networks before they're publicly posted. If you don't know someone, you're always too late — and nobody teaches you how to build that network fast.</p>
+    </div>
+    <div class="problem-card">
+      <div class="problem-num">04</div>
+      <span class="problem-icon">🧩</span>
+      <h3>No tool connects all the pieces</h3>
+      <p>LinkedIn, Indeed, ChatGPT for your CV, Gmail for outreach, and a spreadsheet to track it all. Nothing works together. You're managing a job search like a project with no project management.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<section class="how reveal" id="how">
+  <div class="section-tag">How It Works</div>
+  <h2 class="section-title">From target to <em>interview</em>, in one place</h2>
+
+  <div class="how-layout">
+    <div class="steps-list">
+      <div class="step active" data-panel="1">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">Tell us what you want</div>
+          <div class="step-desc">Enter a target role and up to 5 companies. Reachly builds your job intelligence profile — understanding the exact skills, language, and signals that matter for your positions.</div>
+        </div>
+      </div>
+      <div class="step" data-panel="2">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">We find the right recruiters</div>
+          <div class="step-desc">Reachly scans LinkedIn, Twitter/X, and professional forums to surface recruiters actively working on your target companies. You see their activity, recent posts, and hiring signals.</div>
+        </div>
+      </div>
+      <div class="step" data-panel="3">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">Extension connects & messages them</div>
+          <div class="step-desc">The Reachly Chrome extension opens LinkedIn in the background, sends connection requests with personalized notes, and follows up automatically — all without you touching anything.</div>
+        </div>
+      </div>
+      <div class="step" data-panel="4">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <div class="step-title">Resume tailored to the JD</div>
+          <div class="step-desc">Paste any job description. Reachly performs a gap analysis then rewrites relevant sections of your resume to match it keyword-for-keyword. Your real experience, their exact language.</div>
+        </div>
+      </div>
+      <div class="step" data-panel="5">
+        <div class="step-num">05</div>
+        <div class="step-content">
+          <div class="step-title">Interview prep on demand</div>
+          <div class="step-desc">Land an interview? Reachly builds a full prep pack — real questions from Glassdoor and Reddit for that exact role, an AI mock interviewer with feedback, and a company culture brief.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-visual">
+      <!-- Panel 1 -->
+      <div class="visual-panel active" id="panel-1">
+        <div class="vis-header">Job intelligence profile</div>
+        <div class="vis-card">
+          <div class="vis-card-title">Target Role</div>
+          <div class="vis-card-sub" style="margin-bottom:10px">Product Manager · Entry Level</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="vis-tag tag-blue">Google</span>
+            <span class="vis-tag tag-blue">Paystack</span>
+            <span class="vis-tag tag-blue">Flutterwave</span>
+            <span class="vis-tag tag-blue">Andela</span>
+          </div>
+        </div>
+        <div class="vis-header" style="margin-top:4px">Skill match analysis</div>
+        <div class="vis-bar-wrap">
+          <div class="vis-bar-row"><span class="vis-bar-label">SQL</span><div class="vis-bar-track"><div class="vis-bar-fill" style="width:82%;background:var(--accent3)"></div></div><span class="vis-score">82%</span></div>
+          <div class="vis-bar-row"><span class="vis-bar-label">Agile / PM</span><div class="vis-bar-track"><div class="vis-bar-fill" style="width:60%;background:var(--accent)"></div></div><span class="vis-score">60%</span></div>
+          <div class="vis-bar-row"><span class="vis-bar-label">Figma</span><div class="vis-bar-track"><div class="vis-bar-fill" style="width:35%;background:var(--accent2)"></div></div><span class="vis-score">35%</span></div>
+          <div class="vis-bar-row"><span class="vis-bar-label">Data Analysis</span><div class="vis-bar-track"><div class="vis-bar-fill" style="width:70%;background:var(--gold)"></div></div><span class="vis-score">70%</span></div>
+        </div>
+        <div style="margin-top:auto;display:flex;gap:8px">
+          <span class="vis-tag tag-green">Profile complete</span>
+          <span class="vis-tag tag-blue">4 companies tracked</span>
+        </div>
+      </div>
+
+      <!-- Panel 2: Recruiter Discovery -->
+      <div class="visual-panel" id="panel-2">
+        <div class="vis-header">Recruiters found · Google Nigeria</div>
+        <div class="recruiter-list">
+          <div class="recruiter-row">
+            <div class="recruiter-avatar" style="background:rgba(0,212,255,0.1)">👩🏾</div>
+            <div class="recruiter-info"><div class="recruiter-name">Adaeze Okonkwo</div><div class="recruiter-role">Technical Recruiter · Google · Lagos</div></div>
+            <div class="platform-badges"><span class="platform-badge">in</span><span class="platform-badge">𝕏</span></div>
+          </div>
+          <div class="recruiter-row">
+            <div class="recruiter-avatar" style="background:rgba(123,97,255,0.1)">👨🏽</div>
+            <div class="recruiter-info"><div class="recruiter-name">Emeka Taiwo</div><div class="recruiter-role">University Programs Recruiter · Google</div></div>
+            <div class="platform-badges"><span class="platform-badge">in</span></div>
+          </div>
+          <div class="recruiter-row">
+            <div class="recruiter-avatar" style="background:rgba(0,255,179,0.1)">👩🏼</div>
+            <div class="recruiter-info"><div class="recruiter-name">Sarah Mitchell</div><div class="recruiter-role">EMEA Campus Recruiting Lead</div></div>
+            <div class="platform-badges"><span class="platform-badge">in</span><span class="platform-badge">𝕏</span></div>
+          </div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <span class="vis-tag tag-green">3 new · high match</span>
+          <span class="vis-tag tag-blue">Posted roles last 7 days</span>
+        </div>
+        <div class="vis-card" style="margin-top:8px;border-color:rgba(0,212,255,0.2)">
+          <div class="vis-card-title" style="color:var(--accent);font-size:11px">🔗 Warm Path also found</div>
+          <div class="vis-card-sub">Tunde Adeyemi (your connection) left Paystack 6mo ago — still has relationships there</div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Extension sending -->
+      <div class="visual-panel" id="panel-3">
+        <div class="vis-header">Chrome extension · Active on LinkedIn</div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;overflow:hidden;">
+          <div style="background:var(--surface2);padding:8px 12px;display:flex;align-items:center;gap:6px;border-bottom:1px solid var(--border)">
+            <div style="width:7px;height:7px;border-radius:50%;background:#FF6B6B"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:var(--gold)"></div>
+            <div style="width:7px;height:7px;border-radius:50%;background:var(--accent3)"></div>
+            <div style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:3px 8px;font-family:var(--mono);font-size:9px;color:var(--muted);margin:0 8px">linkedin.com/in/adaeze-okonkwo</div>
+            <div style="background:var(--accent);width:18px;height:18px;border-radius:2px;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:9px;font-weight:800;color:var(--bg)">R</div>
+          </div>
+          <div style="padding:14px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="width:36px;height:36px;border-radius:50%;background:rgba(0,212,255,0.15);display:flex;align-items:center;justify-content:center;font-size:16px">👩🏾</div>
+              <div><div style="font-family:var(--sans);font-size:12px;font-weight:600;color:var(--text)">Adaeze Okonkwo</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted)">Technical Recruiter · Google</div></div>
+            </div>
+            <div style="background:var(--surface2);border:1px solid rgba(0,212,255,0.25);border-radius:3px;padding:10px 12px">
+              <div style="font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:0.1em;margin-bottom:6px;display:flex;align-items:center;gap:5px"><span style="width:5px;height:5px;border-radius:50%;background:var(--accent3);display:inline-block;animation:pulse 1.5s ease infinite"></span>REACHLY EXTENSION · SENDING</div>
+              <div style="font-family:var(--mono);font-size:10px;color:var(--text);line-height:1.6;margin-bottom:8px">"Hi Adaeze, I saw your post about Google's EMEA hiring push — I'm a final-year student at UNILAG with PM experience at my startup Kanopi. Would love to connect."</div>
+              <div style="display:flex;gap:6px">
+                <span class="vis-tag tag-green" style="font-size:9px">✓ Sent</span>
+                <span class="vis-tag tag-blue" style="font-size:9px">CRM updated</span>
+                <span class="vis-tag tag-gold" style="font-size:9px">Follow-up in 5d</span>
+              </div>
+            </div>
+            <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:rgba(245,200,66,0.06);border:1px solid rgba(245,200,66,0.15);border-radius:3px">
+              <span style="font-family:var(--mono);font-size:10px;color:var(--gold)">Daily limit: 7 of 20 sent</span>
+              <div style="width:80px;height:4px;background:var(--border);border-radius:2px;overflow:hidden"><div style="height:100%;width:35%;background:var(--gold);border-radius:2px"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 4: Resume diff -->
+      <div class="visual-panel" id="panel-4">
+        <div class="vis-header">Resume diff · PM Associate @ Google</div>
+        <div class="resume-diff">
+          <div class="diff-row diff-removed">Assisted in developing a subscription management platform handling payment processing and user onboarding.</div>
+          <div class="diff-row diff-added">Led product development of a B2C subscription platform — defined user stories, owned the roadmap, and drove 0→1 delivery using Agile methodology.</div>
+          <div class="diff-row diff-neutral">Collaborated with cross-functional teams on go-to-market strategy.</div>
+          <div class="diff-row diff-removed">Used data to make decisions about product direction.</div>
+          <div class="diff-row diff-added">Leveraged SQL-based cohort analysis and retention metrics to inform prioritization, reducing churn by 18% in pilot cohort.</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <span class="vis-tag tag-green">ATS score +34pts</span>
+          <span class="vis-tag tag-blue">6 keywords matched</span>
+        </div>
+      </div>
+
+      <!-- Panel 5: Interview Prep -->
+      <div class="visual-panel" id="panel-5">
+        <div class="vis-header">★ Interview Prep Suite · Google PM</div>
+        <div class="vis-card" style="border-color:rgba(0,212,255,0.2)">
+          <div class="vis-card-title">Company Brief</div>
+          <div class="vis-card-sub">Google Q2 priorities: AI integration in Workspace, YouTube monetization expansion, Africa market growth</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex:1;overflow:hidden">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase">Real questions from Glassdoor + Reddit</div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.6">"Describe a product you use daily and how you'd improve it for a market we haven't entered yet."</div>
+          <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 12px;font-family:var(--mono);font-size:11px;color:var(--text);line-height:1.6">"How would you prioritize features when engineers, design, and business all disagree?"</div>
+          <div style="background:var(--surface2);border:1px solid rgba(0,255,179,0.2);border-radius:3px;padding:10px 12px">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--accent3);margin-bottom:4px">AI MOCK INTERVIEW · LIVE</div>
+            <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">Your answer was specific but lacked a metric. Add a success measure to make it stronger.<span class="typing-cursor"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CHROME EXTENSION -->
+<section class="extension reveal" id="extension">
+  <div class="section-tag">Chrome Extension</div>
+  <h2 class="section-title">It does the reaching out. <em>You do the interviewing.</em></h2>
+  <p class="section-body">No copy-paste. No manual clicking. The Reachly extension runs inside your browser, acts as you on LinkedIn and Twitter/X, and executes every outreach action automatically — within safe daily limits so your account stays clean.</p>
+
+  <div class="ext-layout">
+    <div class="ext-flow">
+      <div class="ext-step">
+        <div class="ext-step-icon">🧩</div>
+        <div>
+          <div class="ext-step-title">User installs the extension</div>
+          <div class="ext-step-desc">One-click install from the Chrome Web Store. It connects to your Reachly account and reads your action queue from the dashboard. No LinkedIn API. No credentials shared. It runs entirely in your own browser session.</div>
+        </div>
+      </div>
+      <div class="ext-step">
+        <div class="ext-step-icon">🔍</div>
+        <div>
+          <div class="ext-step-title">Reachly queues actions automatically</div>
+          <div class="ext-step-desc">When Reachly finds a recruiter or relevant contact for you, it generates a personalized message and queues a connection request. You see everything before it goes out and can edit or skip any action.</div>
+        </div>
+      </div>
+      <div class="ext-step">
+        <div class="ext-step-icon">⚡</div>
+        <div>
+          <div class="ext-step-title">Extension executes in the background</div>
+          <div class="ext-step-desc">The extension navigates to each recruiter's LinkedIn profile, clicks Connect, sends the personalized note, and closes — all with human-like delays (2–8 seconds between actions) so LinkedIn's detection systems see normal activity.</div>
+        </div>
+      </div>
+      <div class="ext-step">
+        <div class="ext-step-icon">🛡️</div>
+        <div>
+          <div class="ext-step-title">Hard safety limits protect your account</div>
+          <div class="ext-step-desc">Maximum 20 connection requests per day. Actions only run during your normal active hours. Auto-pauses if LinkedIn shows any warning or captcha. Your LinkedIn account is the asset — Reachly protects it.</div>
+        </div>
+      </div>
+      <div class="ext-step">
+        <div class="ext-step-icon">📊</div>
+        <div>
+          <div class="ext-step-title">Everything syncs to your CRM</div>
+          <div class="ext-step-desc">Every action the extension takes — sent, accepted, replied, ignored — syncs back to your Reachly dashboard in real time. Follow-up reminders are scheduled automatically based on response status.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ext-visual">
+      <div class="ext-browser-bar">
+        <div class="ext-browser-dot" style="background:#FF6B6B"></div>
+        <div class="ext-browser-dot" style="background:var(--gold)"></div>
+        <div class="ext-browser-dot" style="background:var(--accent3)"></div>
+        <div class="ext-browser-url">linkedin.com/in/adaeze-okonkwo-recruiter</div>
+        <div class="ext-browser-icon">R</div>
+      </div>
+      <div class="ext-content">
+        <div class="ext-linkedin-card">
+          <div class="ext-li-header">
+            <div class="ext-li-avatar">👩🏾</div>
+            <div>
+              <div class="ext-li-name">Adaeze Okonkwo</div>
+              <div class="ext-li-title">Technical Recruiter at Google · Lagos, Nigeria</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:12px">
+            <div style="flex:1;background:var(--accent);border-radius:2px;padding:6px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--bg);font-weight:500">Connect</div>
+            <div style="flex:1;border:1px solid var(--border);border-radius:2px;padding:6px;text-align:center;font-family:var(--mono);font-size:10px;color:var(--muted)">Message</div>
+          </div>
+          <div class="ext-overlay">
+            <div class="ext-overlay-tag">Reachly Extension · Ready to send</div>
+            <div class="ext-overlay-msg">"Hi Adaeze, I saw your recent post about Google's EMEA campus push — really timely. I'm a final-year student at UNILAG with hands-on PM experience building Kanopi, a subscription platform. Would love to connect and learn more about your team."</div>
+            <div class="ext-actions">
+              <button class="ext-btn ext-btn-primary">Send Now</button>
+              <button class="ext-btn ext-btn-ghost">Edit</button>
+              <button class="ext-btn ext-btn-ghost">Skip</button>
+            </div>
+          </div>
+          <div class="ext-limit">
+            <span class="ext-limit-text">Daily limit: 7 / 20 sent today</span>
+            <div class="ext-limit-bar"><div class="ext-limit-fill"></div></div>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px">
+          <div class="vis-card">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">Queue</div>
+            <div style="font-family:var(--serif);font-size:28px;color:var(--text)">12 <span style="font-family:var(--mono);font-size:12px;color:var(--muted)">pending</span></div>
+          </div>
+          <div class="vis-card">
+            <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">Accepted</div>
+            <div style="font-family:var(--serif);font-size:28px;color:var(--accent3)">43%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WARM PATH FINDER -->
+<section class="reveal" style="background:var(--bg);padding:120px 48px">
+  <div class="section-tag">★ Killer Feature 1</div>
+  <h2 class="section-title">Warm Path <em>Finder</em></h2>
+  <p class="section-body">Cold outreach gets a 2–5% reply rate. A warm introduction gets 40–60%. Reachly maps your existing network against your target companies and finds who you actually know — or know through one degree — that can get you in the door.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:80px;margin-top:64px;align-items:center">
+    <div>
+      <div style="display:flex;flex-direction:column;gap:24px">
+        <div style="padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;border-left:3px solid var(--accent)">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.1em;margin-bottom:8px">STEP 1 — EXPORT</div>
+          <div style="font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Export your LinkedIn connections</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.7">LinkedIn lets you download your full connections list as a CSV under Settings → Data Privacy → Get a copy of your data. Upload it to Reachly once. No API needed. Your data stays yours.</div>
+        </div>
+        <div style="padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;border-left:3px solid var(--accent2)">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent2);letter-spacing:0.1em;margin-bottom:8px">STEP 2 — MATCH</div>
+          <div style="font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">AI maps your network to target companies</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.7">Reachly cross-references your connections against your target companies. It finds people who work there now, left recently (and still have relationships), or are connected to key decision-makers.</div>
+        </div>
+        <div style="padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;border-left:3px solid var(--accent3)">
+          <div style="font-family:var(--mono);font-size:10px;color:var(--accent3);letter-spacing:0.1em;margin-bottom:8px">STEP 3 — REACH</div>
+          <div style="font-family:var(--sans);font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px">Extension sends the warm intro request</div>
+          <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.7">Reachly generates a warm intro request to your mutual contact, the extension sends it via LinkedIn message automatically. One conversation turns a cold application into a warm referral.</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:32px">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:20px">Warm paths found · Paystack</div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="background:var(--bg);border:1px solid rgba(0,255,179,0.2);border-radius:4px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="font-size:16px">👨🏽</span>
+            <div><div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text)">Tunde Adeyemi</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted)">Your 1st-degree connection · Ex-Paystack Engineer</div></div>
+            <span class="vis-tag tag-green" style="margin-left:auto">Direct</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.6;padding:8px;background:var(--surface);border-radius:3px">"Hey Tunde, I'm targeting a PM role at Paystack — I know you spent 2 years there. Would you be open to a quick 10-min call or even just an intro to someone on the product team?"</div>
+          <div style="margin-top:8px;font-family:var(--mono);font-size:10px;color:var(--accent3)">★ Extension will send this automatically</div>
+        </div>
+
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:14px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:16px">👩🏾</span>
+            <div><div style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--text)">Chioma Eze</div><div style="font-family:var(--mono);font-size:10px;color:var(--muted)">Your 2nd-degree · Current Paystack Designer</div></div>
+            <span class="vis-tag tag-blue" style="margin-left:auto">Via mutual</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:11px;color:var(--muted)">Reachable via Tunde intro or direct LinkedIn message</div>
+        </div>
+
+        <div style="display:flex;gap:8px;padding:12px;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.15);border-radius:3px">
+          <div style="font-family:var(--mono);font-size:11px;color:var(--accent)">2 warm paths found at Paystack · reply rate estimate: <strong>47%</strong></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- INTERVIEW PREP -->
+<section class="reveal" style="background:var(--surface);padding:120px 48px">
+  <div class="section-tag">★ Killer Feature 2</div>
+  <h2 class="section-title">Interview Prep <em>Suite</em></h2>
+  <p class="section-body">Getting the interview is hard. Blowing it is harder to recover from. The moment a recruiter moves you to "Interview Scheduled" in your CRM, Reachly automatically builds a full prep pack for that exact company and role.</p>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:64px;background:var(--border)">
+    <div style="background:var(--bg);padding:40px 32px">
+      <div style="font-size:28px;margin-bottom:20px">📋</div>
+      <div style="font-family:var(--sans);font-weight:700;font-size:17px;color:var(--text);margin-bottom:12px">Real Question Bank</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.8">Scraped from Glassdoor, Reddit (r/cscareerquestions, r/interviews), Blind, and Levels.fyi for that specific company and role. Not generic PM questions — actual questions asked at Google PM interviews in 2024.</div>
+    </div>
+    <div style="background:var(--bg);padding:40px 32px;border-left:1px solid var(--border);border-right:1px solid var(--border)">
+      <div style="font-size:28px;margin-bottom:20px">🎙️</div>
+      <div style="font-family:var(--sans);font-weight:700;font-size:17px;color:var(--text);margin-bottom:12px">AI Mock Interviewer</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.8">Type or speak your answers. The AI evaluates clarity, specificity, structure (STAR method), and red flags — then gives actionable feedback. Run as many rounds as you need before the real thing.</div>
+    </div>
+    <div style="background:var(--bg);padding:40px 32px">
+      <div style="font-size:28px;margin-bottom:20px">🏢</div>
+      <div style="font-family:var(--sans);font-weight:700;font-size:17px;color:var(--text);margin-bottom:12px">Company Intelligence Brief</div>
+      <div style="font-family:var(--mono);font-size:12px;color:var(--muted);line-height:1.8">Current priorities, recent news, team culture, known interview style, what interviewers care about most. Everything you need to walk in knowing more about the company than the interviewer expects.</div>
+    </div>
+  </div>
+
+  <div style="margin-top:2px;background:var(--surface2);border:1px solid rgba(0,212,255,0.15);padding:40px;display:grid;grid-template-columns:1fr 2fr;gap:48px;align-items:center">
+    <div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:0.15em;margin-bottom:12px">WHY PEOPLE PAY FOR THIS</div>
+      <div style="font-family:var(--serif);font-size:28px;color:var(--text);line-height:1.2;margin-bottom:16px">Stakes are at <em>maximum</em> when you have the interview</div>
+      <div style="font-family:var(--mono);font-size:13px;color:var(--muted);line-height:1.7">This is the moment anxiety peaks and wallets open. They already did the hard part — getting the interview. They will spend anything to not blow it.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:3px">
+        <div style="font-family:var(--serif);font-size:32px;color:var(--accent)">3x</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">higher offer rate for candidates who do structured prep vs. none</div>
+      </div>
+      <div style="padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:3px">
+        <div style="font-family:var(--serif);font-size:32px;color:var(--accent3)">94%</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">of candidates say they didn't feel fully prepared going into their last interview</div>
+      </div>
+      <div style="padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:3px">
+        <div style="font-family:var(--serif);font-size:32px;color:var(--accent2)">₦0</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">extra infrastructure cost — runs entirely on existing Groq + Brave Search stack</div>
+      </div>
+      <div style="padding:16px;background:var(--bg);border:1px solid var(--border);border-radius:3px">
+        <div style="font-family:var(--serif);font-size:32px;color:var(--gold)">Auto</div>
+        <div style="font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px">triggered the moment CRM status changes to "Interview Scheduled"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section class="features reveal" id="features">
+  <div class="features-header">
+    <div>
+      <div class="section-tag">All Features</div>
+      <h2 class="section-title">Every tool you need. <em>Nothing you don't.</em></h2>
+    </div>
+    <p class="section-body">11 features across the full job search lifecycle — from finding the right recruiter to walking into the interview prepared. Two killer features nobody else offers.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-cell killer">
+      <div class="feature-icon">🗺️</div>
+      <h3>Warm Path Finder</h3>
+      <p>Maps your LinkedIn network against target companies to find warm intro paths. Extension sends the intro request automatically. Cold → warm in one step.</p>
+      <span class="vis-tag tag-blue feature-badge">Pro</span>
+    </div>
+    <div class="feature-cell killer">
+      <div class="feature-icon">🎯</div>
+      <h3>Interview Prep Suite</h3>
+      <p>Auto-triggered on interview booking. Real question bank from Glassdoor/Reddit + AI mock interviewer with STAR feedback + company intelligence brief.</p>
+      <span class="vis-tag tag-blue feature-badge">Pro</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">🧩</div>
+      <h3>Chrome Extension</h3>
+      <p>Runs inside your browser session on LinkedIn and Twitter/X. Sends connection requests, messages, and follow-ups automatically with human-like timing and safe daily limits.</p>
+      <span class="vis-tag tag-blue feature-badge">Core</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">🔍</div>
+      <h3>Multi-Platform Recruiter Search</h3>
+      <p>Searches LinkedIn, Twitter/X, and professional forums for recruiters with active hiring signals at your target companies.</p>
+      <span class="vis-tag tag-green feature-badge">Free</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">📄</div>
+      <h3>Resume Tailoring Engine</h3>
+      <p>Paste any JD. Get a keyword gap analysis and AI-rewritten bullet points that pass ATS filters without inventing experience you don't have.</p>
+      <span class="vis-tag tag-green feature-badge">Free</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">🤖</div>
+      <h3>AI Outreach Generator</h3>
+      <p>Generates personalized connection notes and messages for each recruiter using their activity, open roles, and your background. Every message is unique.</p>
+      <span class="vis-tag tag-green feature-badge">Free</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">🗂️</div>
+      <h3>Recruiter CRM</h3>
+      <p>Tracks every recruiter relationship — contacted, accepted, in conversation, follow-up due, interview scheduled. Your full job search in one clean view.</p>
+      <span class="vis-tag tag-blue feature-badge">Pro</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">📊</div>
+      <h3>Response Analytics</h3>
+      <p>Which outreach styles get replies. Which companies are responding fastest. When the best time to send is. Aggregated anonymously across all users.</p>
+      <span class="vis-tag tag-blue feature-badge">Pro</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">🧠</div>
+      <h3>Job Market Intelligence</h3>
+      <p>Scans recruiter activity patterns and company LinkedIn growth signals to surface which companies are actively hiring before it's public knowledge.</p>
+      <span class="vis-tag tag-purple feature-badge">Pro+</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">📦</div>
+      <h3>Resume Version Manager</h3>
+      <p>Keep multiple tailored versions — one per role or company. Switch instantly. Never send the wrong version to the wrong company again.</p>
+      <span class="vis-tag tag-green feature-badge">Free</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">⏱️</div>
+      <h3>Smart Follow-up Scheduler</h3>
+      <p>Auto-schedules follow-ups based on industry norms. 5 days for tech. 7 for finance. 3 for startups. Nudges before a warm lead goes cold.</p>
+      <span class="vis-tag tag-blue feature-badge">Pro</span>
+    </div>
+    <div class="feature-cell">
+      <div class="feature-icon">🏛️</div>
+      <h3>University Career Center API</h3>
+      <p>Institutions deploy Reachly to their entire student body. Career advisor dashboard, bulk resume review, cohort analytics, and branded portal.</p>
+      <span class="vis-tag tag-purple feature-badge">B2B</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- TECH STACK -->
+<section class="tech reveal" id="tech">
+  <div class="section-tag">Tech Stack</div>
+  <h2 class="section-title">Built entirely <em>free.</em> Scales without breaking.</h2>
+  <p class="section-body">Every layer runs on free tiers during MVP — including the extension. Costs only kick in at real traction, and margins stay healthy when they do.</p>
+
+  <div class="tech-layout">
+    <div>
+      <div class="tech-group">
+        <div class="tech-group-label">Frontend & Backend</div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:var(--text)"></div><div><div class="tech-name">Next.js 14</div><div class="tech-purpose">App Router · API Routes · SSR</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#38BDF8"></div><div><div class="tech-name">Tailwind + shadcn/ui</div><div class="tech-purpose">Styling · Component library</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:var(--text)"></div><div><div class="tech-name">Vercel</div><div class="tech-purpose">Deployment · Edge Functions</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <div class="tech-group-label">Database & Auth</div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#3ECF8E"></div><div><div class="tech-name">Supabase</div><div class="tech-purpose">PostgreSQL · Auth · Storage · 50K MAU</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <div class="tech-group-label">AI Models</div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#F97316"></div><div><div class="tech-name">Groq · Llama 3 70B</div><div class="tech-purpose">Outreach · Resume rewriting · Mock interviewer</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#F97316"></div><div><div class="tech-name">Groq · Whisper</div><div class="tech-purpose">Voice input for mock interviews</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#4285F4"></div><div><div class="tech-name">Gemini Flash</div><div class="tech-purpose">Long document parsing · JD analysis</div></div></div>
+          <span class="tech-cost cost-free">Free</span>
+        </div>
+      </div>
+      <div class="tech-group">
+        <div class="tech-group-label">Discovery & Extension</div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#FF6B35"></div><div><div class="tech-name">Brave Search API</div><div class="tech-purpose">Recruiter discovery · Interview question sourcing</div></div></div>
+          <span class="tech-cost cost-free">2,000/mo free</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:#4285F4"></div><div><div class="tech-name">Chrome Extension (MV3)</div><div class="tech-purpose">LinkedIn & Twitter/X automation · Action execution</div></div></div>
+          <span class="tech-cost cost-once">$5 once</span>
+        </div>
+        <div class="tech-item">
+          <div class="tech-left"><div class="tech-dot" style="background:var(--accent3)"></div><div><div class="tech-name">Resend</div><div class="tech-purpose">Transactional email · Notifications</div></div></div>
+          <span class="tech-cost cost-free">3,000/mo free</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="tech-visual">
+      <div class="code-line"><span class="comment">// Full Reachly pipeline</span></div>
+      <div class="code-line"><span class="kw">async function</span> <span class="fn">reachlyPipeline</span>(user, target) {</div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 1. discover via Brave Search (cached)</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="kw">const</span> recruiters = <span class="kw">await</span> <span class="fn">cachedSearch</span>(target);</div>
+      <div class="code-line"> </div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 2. map warm paths from connections CSV</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="kw">const</span> warmPaths = <span class="kw">await</span> <span class="fn">findWarmPaths</span>(user.network, target);</div>
+      <div class="code-line"> </div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 3. generate messages via Groq</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="kw">const</span> messages = <span class="kw">await</span> <span class="fn">groq</span>.<span class="fn">generate</span>({ recruiters, warmPaths, user });</div>
+      <div class="code-line"> </div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 4. queue for extension execution</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="kw">await</span> supabase.<span class="fn">from</span>(<span class="str">'action_queue'</span>).<span class="fn">insert</span>(messages);</div>
+      <div class="code-line"> </div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 5. extension picks up queue, acts on LinkedIn</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// chrome.runtime → content script → LinkedIn DOM</span></div>
+      <div class="code-line"> </div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 6. tailor resume via Gemini Flash</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="kw">const</span> resume = <span class="kw">await</span> <span class="fn">gemini</span>.<span class="fn">tailor</span>(user.resume, target.jd);</div>
+      <div class="code-line"> </div>
+      <div class="code-line" style="padding-left:20px"><span class="comment">// 7. on interview scheduled → auto-prep</span></div>
+      <div class="code-line" style="padding-left:20px"><span class="kw">if</span> (crm.status === <span class="str">'interview'</span>) <span class="fn">buildPrepPack</span>(target);</div>
+      <div class="code-line">}</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- PRICING -->
+<section class="money reveal" id="pricing">
+  <div class="section-tag">Pricing</div>
+  <h2 class="section-title">Priced for <em>students.</em> Built for the hustle.</h2>
+  <p class="section-body">Start free. Pay only when you need the full arsenal. No annual lock-in — cancel when you get the job.</p>
+  <div class="plans-grid">
+    <div class="plan-card">
+      <div class="plan-name">Free</div>
+      <div class="plan-price">₦0 <span>/month</span></div>
+      <div class="plan-sub">Always free. No card required.</div>
+      <ul class="plan-features">
+        <li>3 resume tailoring sessions/month</li>
+        <li>5 recruiter searches/month</li>
+        <li>5 AI outreach messages/month</li>
+        <li>2 saved resume versions</li>
+        <li>Chrome extension (basic)</li>
+        <li class="locked">Warm Path Finder</li>
+        <li class="locked">Interview Prep Suite</li>
+        <li class="locked">Recruiter CRM</li>
+        <li class="locked">Response analytics</li>
+      </ul>
+      <a href="#" class="plan-cta plan-cta-outline">Get Started Free</a>
+    </div>
+    <div class="plan-card featured">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">₦4,000 <span>/month</span></div>
+      <div class="plan-sub">~$2.60 · Cancel anytime</div>
+      <ul class="plan-features">
+        <li>Unlimited resume tailoring</li>
+        <li>Unlimited recruiter searches</li>
+        <li>Unlimited outreach messages</li>
+        <li>Unlimited resume versions</li>
+        <li>Chrome extension (full automation)</li>
+        <li class="killer-feat">Warm Path Finder — find warm intros</li>
+        <li class="killer-feat">Interview Prep Suite — full mock + intel</li>
+        <li>Full recruiter CRM</li>
+        <li>Response analytics</li>
+      </ul>
+      <a href="#" class="plan-cta plan-cta-filled">Upgrade to Pro</a>
+    </div>
+    <div class="plan-card">
+      <div class="plan-name">Institutions</div>
+      <div class="plan-price">Custom</div>
+      <div class="plan-sub">Annual contract · Volume pricing</div>
+      <ul class="plan-features">
+        <li>Everything in Pro for all students</li>
+        <li>Career advisor dashboard</li>
+        <li>Cohort analytics & reporting</li>
+        <li>Branded student portal</li>
+        <li>Bulk resume review tools</li>
+        <li>Job market intelligence</li>
+        <li>Priority support & onboarding</li>
+        <li>API access for LMS integration</li>
+      </ul>
+      <a href="#" class="plan-cta plan-cta-outline">Contact Us</a>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CAPACITY -->
+<section class="capacity reveal">
+  <div class="section-tag">Free Tier Capacity</div>
+  <h2 class="section-title">How far the <em>free stack</em> takes you</h2>
+  <p class="section-body">Smart caching stretches the free tier far beyond raw limits. Here's the realistic ceiling before spending a single naira on infrastructure.</p>
+  <div class="capacity-grid">
+    <div class="cap-card">
+      <span class="cap-num">1,500<em>+</em></span>
+      <span class="cap-label">Registered Users</span>
+      <p class="cap-desc">Supabase free supports 50K MAU. Your ceiling is API rate limits, not the database.</p>
+    </div>
+    <div class="cap-card">
+      <span class="cap-num">400<em>+</em></span>
+      <span class="cap-label">Active Searchers/mo</span>
+      <p class="cap-desc">Brave Search gives 2,000 queries/month. Caching makes one search serve 10+ users.</p>
+      <span class="cap-constraint">Tightest constraint</span>
+    </div>
+    <div class="cap-card">
+      <span class="cap-num">330<em>+</em></span>
+      <span class="cap-label">Resume Analyses/day</span>
+      <p class="cap-desc">Gemini Flash provides 1M tokens/day free. Each full resume + JD analysis ≈ 3,000 tokens.</p>
+    </div>
+    <div class="cap-card">
+      <span class="cap-num">700<em>+</em></span>
+      <span class="cap-label">Active Users/day</span>
+      <p class="cap-desc">Groq free tier: 14,400 requests/day. At 2 calls per action, 10 actions per active user.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ROADMAP -->
+<section class="roadmap reveal" id="roadmap">
+  <div class="section-tag">Build Roadmap</div>
+  <h2 class="section-title">Ship in <em>phases.</em> Validate before you build.</h2>
+  <p class="section-body">Each phase is a working product. Real feedback at every stage before committing to the next layer.</p>
+  <div class="roadmap-timeline">
+    <div class="roadmap-item">
+      <div class="roadmap-meta">
+        <div class="roadmap-phase">Phase 1</div>
+        <div class="roadmap-timeline-label">Month 1–2</div>
+      </div>
+      <div class="roadmap-content">
+        <div class="roadmap-title">Resume Intelligence</div>
+        <div class="roadmap-desc">The foundation. User uploads resume, pastes a JD, gets a keyword gap analysis and AI-rewritten bullet points in 60 seconds. Validates the AI layer and gives you something shippable immediately.</div>
+        <div class="roadmap-features">
+          <span class="roadmap-tag">Resume upload + parsing</span>
+          <span class="roadmap-tag">JD keyword extraction</span>
+          <span class="roadmap-tag">Gap analysis</span>
+          <span class="roadmap-tag">AI bullet rewriting</span>
+          <span class="roadmap-tag">Resume version manager</span>
+          <span class="roadmap-tag">Supabase auth</span>
+        </div>
+      </div>
+    </div>
+    <div class="roadmap-item next">
+      <div class="roadmap-meta">
+        <div class="roadmap-phase">Phase 2</div>
+        <div class="roadmap-timeline-label">Month 2–3</div>
+      </div>
+      <div class="roadmap-content">
+        <div class="roadmap-title">Recruiter Discovery + Warm Path Finder</div>
+        <div class="roadmap-desc">Add the core differentiator. Brave Search surfaces recruiters. LinkedIn CSV upload enables warm path mapping. Chrome Extension v1 ships — handles connection requests only to start.</div>
+        <div class="roadmap-features">
+          <span class="roadmap-tag">Brave Search integration</span>
+          <span class="roadmap-tag">LinkedIn public scraping</span>
+          <span class="roadmap-tag">LinkedIn CSV parsing</span>
+          <span class="roadmap-tag hot">★ Warm Path Finder</span>
+          <span class="roadmap-tag hot">★ Chrome Extension v1</span>
+          <span class="roadmap-tag">Search result caching</span>
+        </div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-meta">
+        <div class="roadmap-phase">Phase 3</div>
+        <div class="roadmap-timeline-label">Month 3–4</div>
+      </div>
+      <div class="roadmap-content">
+        <div class="roadmap-title">Outreach Automation + CRM</div>
+        <div class="roadmap-desc">Extension v2 — handles messaging, follow-ups, and Twitter/X DMs. Full recruiter CRM ships. This is where the product becomes genuinely sticky and retention kicks in.</div>
+        <div class="roadmap-features">
+          <span class="roadmap-tag">AI message generation</span>
+          <span class="roadmap-tag hot">★ Extension v2 (full automation)</span>
+          <span class="roadmap-tag">Recruiter CRM</span>
+          <span class="roadmap-tag">Follow-up scheduler</span>
+          <span class="roadmap-tag">Twitter/X DM automation</span>
+          <span class="roadmap-tag">Response tracking</span>
+        </div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-meta">
+        <div class="roadmap-phase">Phase 4</div>
+        <div class="roadmap-timeline-label">Month 4–5</div>
+      </div>
+      <div class="roadmap-content">
+        <div class="roadmap-title">Interview Prep Suite + Analytics</div>
+        <div class="roadmap-desc">Auto-triggered prep packs on interview booking. Response analytics go live. This phase activates the second killer feature and gives Pro subscribers the full end-to-end experience.</div>
+        <div class="roadmap-features">
+          <span class="roadmap-tag hot">★ Interview Prep Suite</span>
+          <span class="roadmap-tag">AI mock interviewer (text + voice)</span>
+          <span class="roadmap-tag">Company intelligence briefs</span>
+          <span class="roadmap-tag">Response analytics</span>
+          <span class="roadmap-tag">Hiring signal aggregation</span>
+        </div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-meta">
+        <div class="roadmap-phase">Phase 5</div>
+        <div class="roadmap-timeline-label">Month 6+</div>
+      </div>
+      <div class="roadmap-content">
+        <div class="roadmap-title">B2B University Partnerships</div>
+        <div class="roadmap-desc">Launch the institutional tier. One deal with a university career center covers hundreds of students at once. Cohort analytics, branded portals, and career advisor dashboards.</div>
+        <div class="roadmap-features">
+          <span class="roadmap-tag">University portal</span>
+          <span class="roadmap-tag">Career advisor dashboard</span>
+          <span class="roadmap-tag">Cohort reporting</span>
+          <span class="roadmap-tag">LMS API integration</span>
+          <span class="roadmap-tag">Job market intelligence</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-top">
+    <div class="footer-brand">
+      <h2>Reach<span>ly</span></h2>
+      <p>The recruiter-first job search platform for students and entry-level candidates navigating the AI hiring era. Built in Lagos.</p>
+    </div>
+    <div class="footer-links">
+      <div class="footer-col">
+        <h4>Product</h4>
+        <ul><li><a href="#">Features</a></li><li><a href="#">How it works</a></li><li><a href="#">Pricing</a></li><li><a href="#">Roadmap</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul><li><a href="#">About</a></li><li><a href="#">Blog</a></li><li><a href="#">Careers</a></li><li><a href="#">Contact</a></li></ul>
+      </div>
+      <div class="footer-col">
+        <h4>Institutions</h4>
+        <ul><li><a href="#">University plans</a></li><li><a href="#">Career centers</a></li><li><a href="#">Book a demo</a></li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 Reachly. Built in Lagos, Nigeria.</div>
+    <div class="footer-status"><span class="status-dot"></span>All systems operational</div>
+  </div>
+</footer>
+
+<script>
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  function animateCursor(){
+    cursor.style.left=mx-4+'px';cursor.style.top=my-4+'px';
+    rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;
+    ring.style.left=rx-16+'px';ring.style.top=ry-16+'px';
+    requestAnimationFrame(animateCursor);
+  }
+  animateCursor();
+  document.querySelectorAll('a,button,.step,.feature-cell,.problem-card,.ext-step').forEach(el=>{
+    el.addEventListener('mouseenter',()=>{cursor.style.transform='scale(2.5)';ring.style.transform='scale(1.5)';});
+    el.addEventListener('mouseleave',()=>{cursor.style.transform='scale(1)';ring.style.transform='scale(1)';});
+  });
+
+  const steps=document.querySelectorAll('.step');
+  const panels=document.querySelectorAll('.visual-panel');
+  steps.forEach((step,i)=>{
+    step.addEventListener('click',()=>{
+      steps.forEach(s=>s.classList.remove('active'));
+      panels.forEach(p=>p.classList.remove('active'));
+      step.classList.add('active');
+      const panel=document.getElementById(`panel-${i+1}`);
+      if(panel)panel.classList.add('active');
+    });
+  });
+
+  let cur=0;
+  setInterval(()=>{
+    cur=(cur+1)%steps.length;
+    steps.forEach(s=>s.classList.remove('active'));
+    panels.forEach(p=>p.classList.remove('active'));
+    steps[cur].classList.add('active');
+    const panel=document.getElementById(`panel-${cur+1}`);
+    if(panel)panel.classList.add('active');
+  },4000);
+
+  const reveals=document.querySelectorAll('.reveal');
+  const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:0.08});
+  reveals.forEach(r=>obs.observe(r));
+</script>
+</body>
+</html>

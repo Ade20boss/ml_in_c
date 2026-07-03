@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STRATA — Master Architecture Spec v2.0</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080C10;
+    --bg2:       #0E1420;
+    --bg3:       #131B28;
+    --rule:      rgba(255,255,255,0.07);
+    --rule-mid:  rgba(255,255,255,0.12);
+    --text:      #E8EDF2;
+    --muted:     #7A8899;
+    --dim:       #3E4E62;
+    --blue:      #2D7EFF;
+    --blue-dim:  rgba(45,126,255,0.15);
+    --cyan:      #4EC9B0;
+    --cyan-dim:  rgba(78,201,176,0.12);
+    --amber:     #E5A84B;
+    --amber-dim: rgba(229,168,75,0.12);
+    --red:       #E05C5C;
+    --mono:      'JetBrains Mono', monospace;
+    --sans:      'Space Grotesk', system-ui, sans-serif;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── HERO ─────────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  #graph-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.55;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 0 2rem;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .eyebrow::before, .eyebrow::after {
+    content: '';
+    width: 32px;
+    height: 1px;
+    background: var(--cyan);
+    opacity: 0.5;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 8vw, 6.5rem);
+    font-weight: 300;
+    letter-spacing: -0.03em;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 0.2em;
+  }
+
+  h1 span {
+    color: var(--blue);
+    font-weight: 600;
+  }
+
+  .hero-sub {
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 56ch;
+    margin: 1.5rem auto 0;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .hero-stat {
+    text-align: center;
+  }
+
+  .hero-stat-val {
+    font-family: var(--mono);
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: var(--text);
+    display: block;
+  }
+
+  .hero-stat-label {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    display: block;
+    margin-top: 2px;
+  }
+
+  .hero-version {
+    position: absolute;
+    top: 1.75rem;
+    right: 2rem;
+    z-index: 2;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--dim);
+    text-transform: uppercase;
+    border: 1px solid var(--rule-mid);
+    padding: 5px 10px;
+    border-radius: 4px;
+  }
+
+  .hero-version strong { color: var(--amber); font-weight: 500; }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    z-index: 2;
+    animation: float 2.5s ease-in-out infinite;
+  }
+
+  .scroll-hint svg { opacity: 0.4; }
+
+  @keyframes float {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* ── LAYOUT ───────────────────────────────────────────── */
+  .page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 2rem;
+  }
+
+  /* ── SECTIONS ─────────────────────────────────────────── */
+  .section {
+    padding: 5rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .section:last-child { border-bottom: none; }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+  }
+
+  .section-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--blue);
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .section-title em {
+    font-style: normal;
+    color: var(--muted);
+    font-weight: 300;
+  }
+
+  /* ── RULE DIVIDER ─────────────────────────────────────── */
+  .rule {
+    width: 100%;
+    height: 1px;
+    background: var(--rule);
+    margin: 2.5rem 0;
+  }
+
+  /* ── SUBSECTIONS ──────────────────────────────────────── */
+  .subsection {
+    margin-bottom: 3rem;
+  }
+
+  .subsection:last-child { margin-bottom: 0; }
+
+  .subsection-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--cyan);
+    margin-bottom: 0.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+
+  .subsection-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .subsection-label .tag-new {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--amber);
+    background: var(--amber-dim);
+    padding: 2px 7px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .subsection-title {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.75rem;
+  }
+
+  p { color: var(--muted); line-height: 1.75; margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  strong { color: var(--text); font-weight: 500; }
+
+  /* ── CODE BLOCK ───────────────────────────────────────── */
+  .code-block {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .code-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg3);
+  }
+
+  .code-block-lang {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .code-block-dot {
+    display: flex;
+    gap: 5px;
+  }
+
+  .code-block-dot span {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--rule-mid);
+  }
+
+  pre {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.65;
+    padding: 1.25rem 1.25rem 1.5rem;
+    overflow-x: auto;
+    color: #c9d1d9;
+  }
+
+  .kw   { color: #569cd6; }
+  .ty   { color: #4EC9B0; }
+  .cm   { color: #4d5e72; font-style: italic; }
+  .str  { color: #ce9178; }
+  .num  { color: #b5cea8; }
+  .pp   { color: #c586c0; }
+  .fd   { color: #dcdcaa; }
+  .mb   { color: #9cdcfe; }
+
+  /* ── INFO CARD ────────────────────────────────────────── */
+  .info-card {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1.5rem 0;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .info-card-icon {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+
+  .info-card-icon.blue { background: var(--blue-dim); }
+  .info-card-icon.cyan { background: var(--cyan-dim); }
+  .info-card-icon.amber { background: var(--amber-dim); }
+
+  .info-card-icon svg { width: 14px; height: 14px; }
+  .info-card-icon.blue svg { stroke: var(--blue); }
+  .info-card-icon.cyan svg { stroke: var(--cyan); }
+  .info-card-icon.amber svg { stroke: var(--amber); }
+
+  .info-card-body { flex: 1; }
+  .info-card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+  }
+
+  .info-card-body p { font-size: 13.5px; margin: 0; color: var(--muted); }
+
+  /* ── FORMULA ──────────────────────────────────────────── */
+  .formula {
+    background: var(--bg2);
+    border-left: 2px solid var(--blue);
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 6px 6px 0;
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--text);
+    letter-spacing: 0.03em;
+  }
+
+  .formula small {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    margin-top: 4px;
+    letter-spacing: 0;
+  }
+
+  /* ── INLINE CODE ──────────────────────────────────────── */
+  code {
+    font-family: var(--mono);
+    font-size: 0.85em;
+    background: var(--bg3);
+    border: 1px solid var(--rule-mid);
+    padding: 1px 6px;
+    border-radius: 4px;
+    color: var(--cyan);
+  }
+
+  /* ── SPRINT / PHASE TABLE ─────────────────────────────── */
+  .sprint-grid {
+    margin-top: 2rem;
+  }
+
+  .phase-block {
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1.25rem;
+  }
+
+  .phase-block:last-child { margin-bottom: 0; }
+
+  .phase-header {
+    background: var(--bg3);
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .phase-num {
+    font-family: var(--mono);
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: var(--blue);
+    line-height: 1;
+  }
+
+  .phase-title {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .phase-weeks {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-left: auto;
+    padding-top: 3px;
+  }
+
+  .phase-goal {
+    font-size: 12.5px;
+    color: var(--muted);
+    width: 100%;
+    margin-top: 0.5rem;
+    line-height: 1.6;
+  }
+
+  .phase-tasks {
+    padding: 1.25rem 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .phase-person {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .phase-person-name {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    width: fit-content;
+  }
+
+  .phase-person-name.dan  { background: rgba(45,126,255,0.15); color: var(--blue); }
+  .phase-person-name.hab  { background: rgba(78,201,176,0.12); color: var(--cyan); }
+  .phase-person-name.usa  { background: var(--amber-dim); color: var(--amber); }
+
+  .phase-person ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .phase-person li {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+    padding-left: 0.95rem;
+    position: relative;
+  }
+
+  .phase-person li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--dim);
+  }
+
+  /* ── FEATURE TABLE ────────────────────────────────────── */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 2rem;
+  }
+
+  .feature-row {
+    display: grid;
+    grid-template-columns: 200px 1fr 1fr;
+    background: var(--bg);
+    gap: 0;
+  }
+
+  .feature-row.header {
+    background: var(--bg3);
+  }
+
+  .feature-cell {
+    padding: 1rem 1.25rem;
+    border-right: 1px solid var(--rule);
+    font-size: 13.5px;
+  }
+
+  .feature-cell:last-child { border-right: none; }
+
+  .feature-row.header .feature-cell {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.75rem 1.25rem;
+  }
+
+  .feature-name {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .feature-does { color: var(--muted); }
+  .feature-sells { color: var(--muted); }
+
+  .feature-does strong, .feature-sells strong { color: var(--cyan); }
+
+  /* ── OWNER LEGEND ─────────────────────────────────────── */
+  .owner-pills {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .owner-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1px solid;
+  }
+
+  .owner-pill.dan  { border-color: rgba(45,126,255,0.3); color: var(--blue); background: rgba(45,126,255,0.07); }
+  .owner-pill.hab  { border-color: rgba(78,201,176,0.3); color: var(--cyan); background: rgba(78,201,176,0.07); }
+  .owner-pill.usa  { border-color: rgba(229,168,75,0.3); color: var(--amber); background: rgba(229,168,75,0.07); }
+
+  .owner-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .dan .owner-dot  { background: var(--blue); }
+  .hab .owner-dot  { background: var(--cyan); }
+  .usa .owner-dot  { background: var(--amber); }
+
+  /* ── HNSW DIAGRAM ─────────────────────────────────────── */
+  .hnsw-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    padding: 2rem;
+    margin: 2rem 0;
+  }
+
+  .hnsw-layers {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .hnsw-layer {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px dashed var(--rule);
+    position: relative;
+  }
+
+  .hnsw-layer:last-child { border-bottom: none; }
+
+  .hnsw-layer-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    text-transform: uppercase;
+    width: 60px;
+    flex-shrink: 0;
+  }
+
+  .hnsw-nodes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .hnsw-node {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--mono);
+    font-size: 9px;
+    position: relative;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .hnsw-node.entry {
+    border-color: var(--blue);
+    background: var(--blue-dim);
+    color: var(--blue);
+    width: 36px;
+    height: 36px;
+    font-size: 10px;
+  }
+
+  .hnsw-node.l3 {
+    border-color: rgba(45,126,255,0.6);
+    background: rgba(45,126,255,0.08);
+    color: var(--blue);
+  }
+
+  .hnsw-node.l2 {
+    border-color: rgba(78,201,176,0.5);
+    background: rgba(78,201,176,0.07);
+    color: var(--cyan);
+  }
+
+  .hnsw-node.l1 {
+    border-color: rgba(229,168,75,0.4);
+    background: rgba(229,168,75,0.06);
+    color: var(--amber);
+  }
+
+  .hnsw-node.l0 {
+    border-color: var(--rule-mid);
+    background: transparent;
+    color: var(--dim);
+    width: 22px;
+    height: 22px;
+    font-size: 8px;
+  }
+
+  .hnsw-node.pq {
+    border-style: dashed;
+  }
+
+  .hnsw-connector {
+    flex: 1;
+    height: 1px;
+    background: repeating-linear-gradient(to right, var(--rule-mid) 0, var(--rule-mid) 4px, transparent 4px, transparent 8px);
+  }
+
+  .hnsw-desc {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+
+  /* ── STRUCT FIELDS ────────────────────────────────────── */
+  .struct-card {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 1.5rem 0;
+  }
+
+  .struct-header {
+    background: var(--bg3);
+    padding: 0.6rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .struct-header-kw {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--blue);
+  }
+
+  .struct-header-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--cyan);
+    font-weight: 500;
+  }
+
+  .struct-header-tag {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+  }
+
+  .struct-fields {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .struct-field {
+    display: grid;
+    grid-template-columns: 90px 160px 1fr;
+    align-items: baseline;
+    padding: 0.6rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    gap: 1rem;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    transition: background 0.15s;
+  }
+
+  .struct-field:last-child { border-bottom: none; }
+  .struct-field:hover { background: rgba(255,255,255,0.02); }
+
+  .sf-type { color: var(--cyan); }
+  .sf-name { color: var(--text); }
+  .sf-comment { color: var(--muted); font-size: 11.5px; font-style: italic; }
+
+  /* ── OPCODE TABLE ─────────────────────────────────────── */
+  .opcode-table {
+    margin: 1.5rem 0;
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .opcode-row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    border-bottom: 1px solid var(--rule);
+    align-items: center;
+  }
+
+  .opcode-row:last-child { border-bottom: none; }
+
+  .opcode-row.header {
+    background: var(--bg3);
+  }
+
+  .opcode-cell {
+    padding: 0.75rem 1.25rem;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .opcode-row.header .opcode-cell {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.7rem 1.25rem;
+  }
+
+  .opcode-val {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--cyan);
+  }
+
+  .opcode-row.new .opcode-val { color: var(--amber); }
+  .opcode-row.new .opcode-cell:last-child { color: var(--text); }
+
+  .opcode-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber);
+    background: var(--amber-dim);
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+  }
+
+  /* ── PQ COMPRESSION DIAGRAM ───────────────────────────── */
+  .pq-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    padding: 1.75rem 2rem;
+    margin: 2rem 0;
+  }
+
+  .pq-row {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px dashed var(--rule);
+  }
+
+  .pq-row:last-child { border-bottom: none; }
+
+  .pq-row-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    width: 120px;
+    flex-shrink: 0;
+  }
+
+  .pq-vector {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+    flex: 1;
+  }
+
+  .pq-dim-block {
+    width: 13px;
+    height: 24px;
+    background: rgba(45,126,255,0.18);
+    border: 1px solid rgba(45,126,255,0.3);
+    border-radius: 2px;
+  }
+
+  .pq-subvec {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--cyan);
+    width: 32px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--cyan-dim);
+    border: 1px solid rgba(78,201,176,0.3);
+    border-radius: 2px;
+  }
+
+  .pq-code {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--amber);
+    width: 32px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--amber-dim);
+    border: 1px solid rgba(229,168,75,0.3);
+    border-radius: 2px;
+  }
+
+  .pq-ellipsis {
+    color: var(--dim);
+    font-family: var(--mono);
+    font-size: 16px;
+    padding: 0 4px;
+  }
+
+  .pq-caption {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 1.25rem;
+    text-align: right;
+  }
+
+  /* ── SEQUENCE DIAGRAM ─────────────────────────────────── */
+  .sequence-diagram {
+    background: var(--bg2);
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    padding: 0.5rem 2rem;
+    margin: 2rem 0;
+  }
+
+  .seq-step {
+    display: flex;
+    gap: 1.25rem;
+    padding: 1rem 0;
+    border-bottom: 1px dashed var(--rule);
+    align-items: flex-start;
+  }
+
+  .seq-step:last-child { border-bottom: none; }
+
+  .seq-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--blue);
+    width: 18px;
+    flex-shrink: 0;
+    padding-top: 3px;
+  }
+
+  .seq-actor {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 3px 9px;
+    border-radius: 4px;
+    flex-shrink: 0;
+    height: fit-content;
+    width: 78px;
+    text-align: center;
+  }
+
+  .seq-actor.c  { background: rgba(45,126,255,0.15); color: var(--blue); }
+  .seq-actor.py { background: var(--cyan-dim); color: var(--cyan); }
+
+  .seq-text {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  /* ── READING LISTS ────────────────────────────────────── */
+  .reading-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-top: 2rem;
+  }
+
+  .reading-card {
+    border: 1px solid var(--rule-mid);
+    border-radius: 8px;
+    background: var(--bg2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .reading-card-header {
+    padding: 0.85rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg3);
+  }
+
+  .reading-card-body {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    flex: 1;
+  }
+
+  .reading-book-title {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  .reading-book-author {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--dim);
+    margin-top: 3px;
+    letter-spacing: 0.02em;
+  }
+
+  .reading-book-note {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-top: 5px;
+    line-height: 1.55;
+  }
+
+  /* ── FOOTER ───────────────────────────────────────────── */
+  .footer {
+    padding: 3rem 0 4rem;
+    text-align: center;
+  }
+
+  .footer-wordmark {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+
+  .footer-wordmark span { color: var(--blue); }
+  .footer-wordmark .v2 { color: var(--amber); }
+
+  /* ── HIGHLIGHT STRIP ──────────────────────────────────── */
+  .highlight-strip {
+    border-left: 2px solid var(--blue);
+    padding-left: 1.25rem;
+    margin: 1.5rem 0;
+  }
+
+  .highlight-strip.cyan { border-left-color: var(--cyan); }
+  .highlight-strip.amber { border-left-color: var(--amber); }
+
+  /* ── RESPONSIVE ───────────────────────────────────────── */
+  @media (max-width: 700px) {
+    .phase-tasks { grid-template-columns: 1fr; gap: 1.25rem; }
+    .feature-row { grid-template-columns: 1fr; }
+    .struct-field { grid-template-columns: 80px 1fr; }
+    .sf-comment { display: none; }
+    .reading-grid { grid-template-columns: 1fr; }
+    .opcode-row { grid-template-columns: 70px 1fr; }
+    .pq-row { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+    .pq-row-label { width: auto; }
+    h1 { font-size: 2.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── HERO ──────────────────────────────────────────────── -->
+<section class="hero">
+  <canvas id="graph-canvas"></canvas>
+  <div class="hero-version">v1.0 → <strong>v2.0</strong></div>
+  <div class="hero-content">
+    <div class="eyebrow">Vector Database Engine</div>
+    <h1>STRA<span>TA</span></h1>
+    <p class="hero-sub">
+      A bare-metal, in-memory Hierarchical Navigable Small World vector database —
+      now with Product-Quantized compression, lock-safe live ingestion, and
+      crash-consistent persistence. Sub-millisecond similarity search over
+      compressed sub-vector codes, visualized live in WebGL.
+    </p>
+    <div class="hero-meta">
+      <div class="hero-stat">
+        <span class="hero-stat-val">32×</span>
+        <span class="hero-stat-label">PQ Compression</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">&lt;1ms</span>
+        <span class="hero-stat-label">Query Target</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">msync</span>
+        <span class="hero-stat-label">Crash Safety</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-val">14wk</span>
+        <span class="hero-stat-label">7-Phase Roadmap</span>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <svg width="14" height="20" viewBox="0 0 14 20" fill="none" stroke="currentColor" stroke-width="1.2">
+      <rect x="1" y="1" width="12" height="18" rx="6"/>
+      <line x1="7" y1="5" x2="7" y2="9"/>
+    </svg>
+    Scroll
+  </div>
+</section>
+
+<!-- ── WIRE PROTOCOL ──────────────────────────────────────── -->
+<div class="page">
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">Wire Protocol <em>— The Memory Contract</em></h2>
+  </div>
+
+  <div class="subsection">
+    <p>
+      JSON is too slow for moving gigabytes of multi-dimensional vector arrays.
+      Communication between Habeeb's AI pipeline and the C database uses a strict
+      <strong>binary protocol</strong>. All vectors originate as exactly <code>384</code> dimensions
+      (standard <code>all-MiniLM-L6-v2</code> output) — but past Phase 3, most of what
+      crosses the wire is <strong>compressed</strong>.
+    </p>
+  </div>
+
+  <!-- Opcode Table -->
+  <div class="subsection-label">Opcode Registry</div>
+  <div class="opcode-table">
+    <div class="opcode-row header">
+      <div class="opcode-cell">Opcode</div>
+      <div class="opcode-cell">Meaning</div>
+    </div>
+    <div class="opcode-row">
+      <div class="opcode-cell"><span class="opcode-val">0x01</span></div>
+      <div class="opcode-cell"><strong style="color:var(--text)">Insert Batch</strong> — raw <code>VectorPayload</code> structs, used for the offline bootstrap and for the sample set Habeeb trains the PQ codebook on.</div>
+    </div>
+    <div class="opcode-row">
+      <div class="opcode-cell"><span class="opcode-val">0x02</span></div>
+      <div class="opcode-cell"><strong style="color:var(--text)">Query NN</strong> — nearest-neighbor search against the HNSW graph using the ADC metric.</div>
+    </div>
+    <div class="opcode-row new">
+      <div class="opcode-cell"><span class="opcode-val">0x03</span></div>
+      <div class="opcode-cell"><strong style="color:var(--text)">Query Sync State</strong> — returns the 8-byte <code>last_safely_synced_doc_id</code> high-water mark.<span class="opcode-tag">New · Phase 7</span></div>
+    </div>
+    <div class="opcode-row new">
+      <div class="opcode-cell"><span class="opcode-val">0x04</span></div>
+      <div class="opcode-cell"><strong style="color:var(--text)">Insert Compressed Batch</strong> — live-stream <code>PQCodePayload</code> structs post-quantization.<span class="opcode-tag">New · Phase 3</span></div>
+    </div>
+  </div>
+
+  <!-- Packet Header -->
+  <div class="subsection-label">Struct 01 — Request Header</div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">PacketHeader</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 12 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">magic</span>
+        <span class="sf-comment">// 0xDEADBEEF — packet integrity guard</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint16_t</span>
+        <span class="sf-name">version</span>
+        <span class="sf-comment">// protocol version — bump to 2 for PQ + sync opcodes</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">opcode</span>
+        <span class="sf-comment">// see Opcode Registry above</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">reserved</span>
+        <span class="sf-comment">// align header to 8 bytes</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">count</span>
+        <span class="sf-comment">// number of payload structs following</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">dim</span>
+        <span class="sf-comment">// 384 for raw, 48 for PQ-coded</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vector Payload -->
+  <div class="subsection-label">Struct 02 — Raw Vector Payload <span class="tag-new">Bootstrap · 0x01</span></div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">VectorPayload</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 1568 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">doc_id</span>
+        <span class="sf-comment">// unique document identifier</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">float</span>
+        <span class="sf-name">vector[384]</span>
+        <span class="sf-comment">// 1536 bytes of contiguous float data</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">padding[28]</span>
+        <span class="sf-comment">// pad to 32-byte cache-line multiple</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PQ Code Payload -->
+  <div class="subsection-label">Struct 03 — Compressed Vector Payload <span class="tag-new">New · Live Stream · 0x04</span></div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">PQCodePayload</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 64 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">doc_id</span>
+        <span class="sf-comment">// unique document identifier</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">codes[48]</span>
+        <span class="sf-comment">// 48 sub-space centroid IDs, 0–255 each</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">uint8_t</span>
+        <span class="sf-name">padding[12]</span>
+        <span class="sf-comment">// pad to 64-byte cache-line multiple</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search Result -->
+  <div class="subsection-label">Struct 04 — Outbound Search Result</div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">SearchResult</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 8 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint32_t</span>
+        <span class="sf-name">doc_id</span>
+        <span class="sf-comment">// ID of closest match</span>
+      </div>
+      <div class="struct-field">
+        <span class="sf-type">float</span>
+        <span class="sf-name">distance</span>
+        <span class="sf-comment">// ADC similarity score</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sync State Response -->
+  <div class="subsection-label">Struct 05 — Sync State Response <span class="tag-new">New · 0x03</span></div>
+  <div class="struct-card">
+    <div class="struct-header">
+      <span class="struct-header-kw">typedef struct</span>
+      <span class="struct-header-name">SyncStateResponse</span>
+      <span class="struct-header-tag">__attribute__((packed)) · 8 bytes</span>
+    </div>
+    <div class="struct-fields">
+      <div class="struct-field">
+        <span class="sf-type">uint64_t</span>
+        <span class="sf-name">last_safely_synced_doc_id</span>
+        <span class="sf-comment">// read from the .meta high-water mark</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-card">
+    <div class="info-card-icon blue">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/>
+      </svg>
+    </div>
+    <div class="info-card-body">
+      <div class="info-card-title">Cache alignment is critical</div>
+      <p><code>VectorPayload</code> is padded to exactly 1568 bytes and <code>PQCodePayload</code> to exactly 64 bytes — both clean multiples of the 32-byte cache line. This is not style; it is a performance invariant that must be preserved across every protocol change, including the new opcodes.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── CORE ENGINE SUBSYSTEMS ──────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">Core Engine Subsystems <em>— Daniel's Domain</em></h2>
+  </div>
+
+  <p>The engine is a graph structure in memory that traverses millions of nodes without scanning the entire dataset. v2.0 adds a compression layer beneath that graph, a concurrency model that lets it absorb live writes, and a crash-recovery contract that survives a kill -9 mid-stream.</p>
+
+  <div class="rule"></div>
+
+  <!-- Subsystem A -->
+  <div class="subsection">
+    <div class="subsection-label">Subsystem A</div>
+    <div class="subsection-title">Memory-Mapped Vault &amp; OS-Level Tuning</div>
+    <p>
+      A massive contiguous file is <code>mmap()</code>'d into virtual memory. One million 384D vectors
+      consume roughly 1.5 GB of RAM for raw arrays alone — before accounting for graph link metadata.
+      Memory mapping lets the Linux kernel automatically page data in and out of physical RAM, enabling
+      datasets that exceed server memory limits without manual disk I/O code.
+    </p>
+
+    <div class="info-card">
+      <div class="info-card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
+        </svg>
+      </div>
+      <div class="info-card-body">
+        <div class="info-card-title">Kernel-managed paging</div>
+        <p>The kernel treats the mmap region as demand-paged virtual memory. Pages not recently accessed are swapped to disk transparently. The database code reads and writes as if all data is in RAM.</p>
+      </div>
+    </div>
+
+    <p>
+      Two tuning passes harden this for HNSW's access pattern, which is the opposite of sequential:
+    </p>
+
+    <div class="highlight-strip">
+      <strong>madvise(..., MADV_RANDOM).</strong> Called immediately after mapping, this disables the kernel's
+      sequential read-ahead. HNSW hops between distant graph nodes — read-ahead would waste bandwidth pulling
+      in pages the traversal will never touch.
+    </div>
+
+    <div style="margin-top: 1rem;"></div>
+
+    <div class="highlight-strip cyan">
+      <strong>Huge Pages (MAP_HUGETLB).</strong> Configuring 2MB or 1GB huge pages collapses the number of
+      page-table entries the TLB has to track. During a graph traversal that touches thousands of scattered
+      4KB pages, this is the difference between a TLB hit and a TLB miss on nearly every hop.
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- Subsystem B -->
+  <div class="subsection">
+    <div class="subsection-label">Subsystem B <span class="tag-new">New</span></div>
+    <div class="subsection-title">Product Quantization &amp; Asymmetric Distance Computation</div>
+    <p>
+      Storing 1.5 GB per million vectors doesn't scale to the dataset sizes this engine is meant for.
+      <strong>Product Quantization (PQ)</strong> compresses each 384D vector into a 48-byte code by splitting
+      it into 48 sub-vectors of 8 dimensions, then replacing each sub-vector with the ID of its nearest
+      centroid in a codebook Habeeb trains offline via K-means.
+    </p>
+
+    <div class="pq-diagram">
+      <div class="pq-row">
+        <div class="pq-row-label">384D Vector</div>
+        <div class="pq-vector"><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><div class="pq-dim-block"></div><span class="pq-ellipsis">…</span></div>
+      </div>
+      <div class="pq-row">
+        <div class="pq-row-label">48 Sub-Vectors</div>
+        <div class="pq-vector"><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><div class="pq-subvec">8D</div><span class="pq-ellipsis">…</span></div>
+      </div>
+      <div class="pq-row">
+        <div class="pq-row-label">PQ Codes (8-bit)</div>
+        <div class="pq-vector"><div class="pq-code">57</div><div class="pq-code">12</div><div class="pq-code">140</div><div class="pq-code">125</div><div class="pq-code">114</div><div class="pq-code">71</div><div class="pq-code">52</div><div class="pq-code">44</div><div class="pq-code">216</div><div class="pq-code">16</div><div class="pq-code">15</div><div class="pq-code">47</div><div class="pq-code">111</div><div class="pq-code">119</div><div class="pq-code">13</div><div class="pq-code">101</div><span class="pq-ellipsis">…</span></div>
+      </div>
+      <div class="pq-caption">showing 16 of 48 sub-spaces · 256 centroids per codebook</div>
+    </div>
+
+    <p>
+      The engine loads the codebook (48 sub-spaces × 256 centroids × 8 floats) once at boot.
+      At query time, it cannot simply decompress and run the standard L2 kernel — that would defeat the
+      point. Instead it runs <strong>Asymmetric Distance Computation (ADC)</strong>:
+    </p>
+
+    <div class="formula">
+      d<sub>ADC</sub>(q, code) = Σ<sub>m=1</sub><sup>48</sup> table[m][code[m]]
+      <small>Sum of 48 precomputed lookup-table entries — one per sub-space</small>
+    </div>
+
+    <p>
+      For each incoming query, the engine first computes the distance from the <em>raw</em> query vector
+      to all 256 centroids in each of the 48 sub-spaces, storing the results in an L1-cached lookup table.
+      From there, scoring any compressed candidate is just 48 table reads and a sum — accelerated with
+      AVX-2 gather instructions to pull multiple table entries per cycle.
+    </p>
+
+    <div class="highlight-strip amber">
+      <strong>32× memory reduction.</strong> 1536 bytes of floats become 48 bytes of codes. One million
+      vectors drops from ~1.5 GB to ~48 MB of hot data — small enough to live almost entirely in cache
+      during traversal.
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- Subsystem C -->
+  <div class="subsection">
+    <div class="subsection-label">Subsystem C</div>
+    <div class="subsection-title">Hierarchical Navigable Small World Graph</div>
+    <p>
+      HNSW is a multi-layered skip-list applied to a proximity graph. Each layer contains
+      exponentially fewer nodes than the one below it. Search begins at the sparsest top layer,
+      taking "highway" jumps across the vector space, then descends for precise local search in Layer 0.
+      Every node now carries a pointer to its 48-byte <code>PQCodePayload</code> instead of a raw float array.
+    </p>
+
+    <div class="hnsw-diagram">
+      <div class="hnsw-layers">
+        <div class="hnsw-layer">
+          <div class="hnsw-layer-label">Layer 3</div>
+          <div class="hnsw-nodes">
+            <div class="hnsw-node entry pq">EP</div>
+          </div>
+          <div class="hnsw-connector"></div>
+          <div class="hnsw-desc">1 node — entry point</div>
+        </div>
+        <div class="hnsw-layer">
+          <div class="hnsw-layer-label">Layer 2</div>
+          <div class="hnsw-nodes">
+            <div class="hnsw-node l3 pq">7</div>
+            <div class="hnsw-node l3 pq">22</div>
+            <div class="hnsw-node l3 pq">41</div>
+          </div>
+          <div class="hnsw-connector"></div>
+          <div class="hnsw-desc">~log(N) nodes</div>
+        </div>
+        <div class="hnsw-layer">
+          <div class="hnsw-layer-label">Layer 1</div>
+          <div class="hnsw-nodes">
+            <div class="hnsw-node l2 pq">3</div>
+            <div class="hnsw-node l2 pq">7</div>
+            <div class="hnsw-node l2 pq">12</div>
+            <div class="hnsw-node l2 pq">19</div>
+            <div class="hnsw-node l2 pq">22</div>
+            <div class="hnsw-node l2 pq">30</div>
+            <div class="hnsw-node l2 pq">41</div>
+          </div>
+          <div class="hnsw-connector"></div>
+          <div class="hnsw-desc">~√N nodes</div>
+        </div>
+        <div class="hnsw-layer">
+          <div class="hnsw-layer-label">Layer 0</div>
+          <div class="hnsw-nodes">
+            <div class="hnsw-node l0 pq">1</div>
+            <div class="hnsw-node l0 pq">2</div>
+            <div class="hnsw-node l0 pq">3</div>
+            <div class="hnsw-node l0 pq">4</div>
+            <div class="hnsw-node l0 pq">5</div>
+            <div class="hnsw-node l0 pq">6</div>
+            <div class="hnsw-node l0 pq">7</div>
+            <div class="hnsw-node l0 pq">8</div>
+            <div class="hnsw-node l0 pq">9</div>
+            <div class="hnsw-node l0 pq">10</div>
+            <div class="hnsw-node l0">…</div>
+          </div>
+          <div class="hnsw-connector"></div>
+          <div class="hnsw-desc">All N vectors — PQ codes</div>
+        </div>
+      </div>
+    </div>
+    <p>
+      Search complexity is <code>O(log N)</code> versus the <code>O(N)</code> of brute-force scan.
+      At one million vectors, that is the difference between roughly 20 hops and one million comparisons —
+      with every hop now scored by the ADC kernel from Subsystem B instead of a full 384D Euclidean distance.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- Subsystem D -->
+  <div class="subsection">
+    <div class="subsection-label">Subsystem D <span class="tag-new">New</span></div>
+    <div class="subsection-title">Concurrency &amp; The Synchronization Lock</div>
+    <p>
+      Once ingestion is asynchronous, two things can happen to the same graph node at once: a background
+      worker is writing a freshly-inserted vector's links while a search thread is reading them to decide
+      its next hop. Without protection, that's a corrupted traversal or a crash.
+    </p>
+    <p>
+      The fix is a lightweight <strong>read-write lock</strong> (or, where contention allows, a
+      <strong>lock-free atomic pointer swap</strong>) scoped to individual graph nodes rather than the whole
+      graph — a global lock would serialize every search behind every insert, which defeats the point of an
+      asynchronous pipeline.
+    </p>
+
+    <div class="highlight-strip">
+      <strong>Zero-Leak Audit.</strong> The full engine runs under Valgrind's <code>memcheck</code> (uninitialized
+      memory) and <code>massif</code> (heap profiling) until every uninitialized-read and graph-pointer leak is
+      resolved. A vector database that's fast but leaks memory under live writes just fails more slowly.
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <!-- Subsystem E -->
+  <div class="subsection">
+    <div class="subsection-label">Subsystem E <span class="tag-new">New</span></div>
+    <div class="subsection-title">Fault Tolerance &amp; The High-Water Mark</div>
+    <p>
+      A vector database that loses writes on crash isn't production-grade. The goal is zero data loss
+      without paying for a Write-Ahead Log on every insert — instead, the engine checkpoints in batches
+      and exposes exactly how far it got.
+    </p>
+
+    <div class="highlight-strip cyan">
+      Every 1,000 vectors processed, the engine calls <code>msync(..., MS_SYNC)</code> on the mmap vault,
+      forcing the kernel to flush those pages to physical disk — then writes an 8-byte
+      <code>last_safely_synced_doc_id</code> into a tiny adjacent <code>.meta</code> file.
+    </div>
+
+    <p style="margin-top: 1.5rem;">
+      On reconnect, the Python pipeline needs to know exactly where the C engine left off. That's the
+      <strong>offset handshake</strong> — opcode <code>0x03</code> ties the C-side high-water mark to
+      Habeeb's resume logic:
+    </p>
+
+    <div class="sequence-diagram">
+      <div class="seq-step">
+        <span class="seq-num">1</span>
+        <span class="seq-actor py">Python</span>
+        <p class="seq-text">Daemon boots, or reconnects after a dropped TCP connection.</p>
+      </div>
+      <div class="seq-step">
+        <span class="seq-num">2</span>
+        <span class="seq-actor py">Python</span>
+        <p class="seq-text">Sends opcode <code>0x03</code> — Query Sync State — before streaming any vectors.</p>
+      </div>
+      <div class="seq-step">
+        <span class="seq-num">3</span>
+        <span class="seq-actor c">C Engine</span>
+        <p class="seq-text">Reads the 8-byte <code>last_safely_synced_doc_id</code> from the <code>.meta</code> file and returns it as a <code>SyncStateResponse</code>.</p>
+      </div>
+      <div class="seq-step">
+        <span class="seq-num">4</span>
+        <span class="seq-actor py">Python</span>
+        <p class="seq-text">Drops every vector prior to that ID from its local holding <code>deque</code>, then resumes streaming from the exact offset the C engine left off at.</p>
+      </div>
+    </div>
+
+    <p>
+      This is the seam the whole project is built on: at the end of every 2-week phase, Habeeb's
+      Python output plugs into Daniel's C engine without either side guessing about state.
+    </p>
+  </div>
+</section>
+
+<!-- ── SEMANTIC PIPELINE ───────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">Semantic Pipeline <em>— Habeeb's Domain</em></h2>
+  </div>
+
+  <p>An empty vector database returns nothing. The ingestion pipeline converts human language into the 384-dimensional float arrays the engine operates on — then, in v2.0, compresses them, makes them retrievable as text again, and keeps the stream alive through crashes and reconnects.</p>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem A</div>
+    <div class="subsection-title">Ingestion &amp; Chunking Engine</div>
+    <p>
+      A Python daemon using <code>sentence-transformers</code> downloads a large technical corpus
+      (target: 50,000 Wikipedia medical articles), chunks the text into clean ~512-token paragraphs
+      without destroying semantic meaning, and passes each chunk through the <code>all-MiniLM-L6-v2</code>
+      model to produce 384D float arrays.
+    </p>
+    <p>
+      Each array is packed via Python's <code>struct</code> module into the <code>VectorPayload</code>
+      binary format and streamed over a TCP socket to the C database at <strong>1,000+ vectors per second</strong>.
+    </p>
+
+    <div class="highlight-strip cyan">
+      The model output is deterministic: identical input text always produces identical
+      float arrays. This makes test data reproducible and pipeline debugging tractable.
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem B <span class="tag-new">New</span></div>
+    <div class="subsection-title">Codebook Generation — K-Means Clustering</div>
+    <p>
+      Before the C engine can compress anything, Habeeb has to teach it how. A representative 10% sample
+      of the offline dataset is extracted, the 384-dimensional space is split into 48 sub-spaces of
+      8 dimensions each, and K-means runs independently on each sub-space to produce 256 centroids — the
+      <strong>codebook</strong>.
+    </p>
+    <p>
+      The codebook is serialized into a binary blob and shipped to Daniel's engine to be loaded at boot,
+      becoming the shared vocabulary both the compressor and the ADC kernel speak.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem C <span class="tag-new">New</span></div>
+    <div class="subsection-title">The Quantizer — Vector Compression</div>
+    <p>
+      For every new embedding, the quantizer splits the raw 384D float vector into 48 sub-vectors and finds
+      the nearest centroid in the codebook for each — replacing 1536 bytes of floats with 48 bytes of 8-bit
+      centroid IDs, packed into a <code>PQCodePayload</code> and streamed via opcode <code>0x04</code>.
+    </p>
+
+    <div class="info-card">
+      <div class="info-card-icon cyan">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/>
+        </svg>
+      </div>
+      <div class="info-card-body">
+        <div class="info-card-title">NumPy, not Python loops</div>
+        <p>A per-vector, per-sub-space Python loop chokes at this volume. The quantizer uses pure C-backed NumPy advanced indexing and broadcasting to find nearest centroids across the whole batch at once.</p>
+      </div>
+    </div>
+
+    <p>
+      A verification script computes the approximate ADC distance between a query and a compressed vector
+      in Python — this becomes the gold standard the C engine's ADC kernel is checked against.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem D <span class="tag-new">New</span></div>
+    <div class="subsection-title">Reverse-Lookup API &amp; Document Management</div>
+    <p>
+      The C engine only knows <code>doc_id</code>s. A FastAPI service, built around the
+      <code>async def</code> concurrency model, fronts a Redis or SQLite store mapping each
+      <code>doc_id</code> to its original text chunk and source metadata.
+    </p>
+    <p>
+      When the WebGL terminal receives a nearest-neighbor <code>doc_id</code> from the C engine, it hits
+      this API for the actual paragraph to display — closing the loop from compressed integer back to
+      human-readable text in sub-millisecond time.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem E <span class="tag-new">New</span></div>
+    <div class="subsection-title">Concept Search — Query Expansion</div>
+    <p>
+      Users type vague terms. Before embedding a query, the API can route it through a fast local LLM
+      (e.g. Llama-3) that expands an ambiguous phrase like <em>"cardiovascular failure"</em> into more
+      specific related terms, then embeds the <em>expanded</em> text. The vectors that reach the C engine
+      are sharper than what the user actually typed.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem F <span class="tag-new">New</span></div>
+    <div class="subsection-title">Stream Hardening &amp; The Resume Logic</div>
+    <p>
+      The TCP client talking to the C engine implements exponential backoff for connection drops and
+      proper handling of <code>EPIPE</code> (broken pipe) errors. The <strong>Avalanche Test</strong> proves
+      it: stream 10,000 vectors over the live socket as fast as the network allows, with zero struct tearing
+      on the C side.
+    </p>
+    <p>
+      On every boot or reconnect, the daemon sends opcode <code>0x03</code> <em>before</em> any vectors,
+      parses the returned <code>last_safely_synced_doc_id</code>, drops everything before that ID from its
+      local holding <code>deque</code>, and resumes from the exact offset the C engine left off at — the
+      Python half of the handshake described in Subsystem E of the Core Engine.
+    </p>
+  </div>
+</section>
+
+<!-- ── STRATA TERMINAL ─────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">Strata Terminal <em>— Usaamah's Domain</em></h2>
+  </div>
+
+  <p>Clients do not reason in multidimensional arrays. The terminal proves the engine is thinking spatially by making vector space visible — and in v2.0, by visibly surviving the things that would normally break a live demo: clicks on a million points, a live data injection, and a dropped connection.</p>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem A</div>
+    <div class="subsection-title">3D Render Engine — Next.js + React Three Fiber</div>
+    <p>
+      Rendering 100,000 individual objects with separate draw calls drops the frame rate to zero.
+      The terminal uses <code>THREE.InstancedMesh</code> to render the entire dataset — every star,
+      every data point — in a <strong>single WebGL draw call</strong>. The GPU processes instance
+      transform matrices in parallel rather than sequentially.
+    </p>
+
+    <div class="info-card">
+      <div class="info-card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 000 20M2 12h20"/>
+        </svg>
+      </div>
+      <div class="info-card-body">
+        <div class="info-card-title">1 draw call = 100,000 data points</div>
+        <p>Without instanced rendering, every sphere is a separate GPU command. With InstancedMesh the entire dataset — positions, colors, sizes — is uploaded as a single buffer, and the GPU iterates internally. This is non-negotiable at this scale.</p>
+      </div>
+    </div>
+
+    <div class="highlight-strip">
+      <strong>Semantic Galaxy.</strong> The background is a live 3D scatter plot where vectors with high
+      cosine similarity cluster visually near each other — Habeeb's PCA/t-SNE reduction of the 384D space
+      to 3D coordinates, mapped into a single <code>Float32Array</code> and pushed directly into VRAM.
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem B <span class="tag-new">New</span></div>
+    <div class="subsection-title">GPU Color-Picking &amp; Spatial Navigation</div>
+    <p>
+      Letting the user fly through the galaxy and click individual points is where naive implementations
+      die: standard raycasting means the CPU checks the mouse line against a million points, every frame.
+    </p>
+    <p>
+      Instead, the terminal renders a hidden scene where <strong>every point has a unique RGB color
+      encoding its <code>doc_id</code></strong>. On click, <code>gl.readPixels</code> reads the single
+      pixel under the cursor, decodes the hex back to an ID, and the terminal instantly knows which node
+      was clicked — at zero per-frame CPU cost.
+    </p>
+
+    <div class="highlight-strip cyan">
+      Smooth, damped camera controls (zoom, pan, rotate) sit on top of this, giving the navigation a
+      cinematic feel rather than a CAD-tool one.
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem C <span class="tag-new">New</span></div>
+    <div class="subsection-title">The HNSW Traversal Visualizer</div>
+    <p>
+      Sub-millisecond logarithmic search is invisible by default — it's just a fast answer. To make it
+      <em>seen</em>, the backend returns not just the final result but the array of nodes the HNSW graph
+      hopped through to get there.
+    </p>
+    <p>
+      A custom fragment shader draws glowing, animated lines connecting these nodes in sequence. The user
+      physically watches the algorithm jump from the sparse Layer 3 entry point down to the dense Layer 0
+      cluster — Daniel's diagram from Section 02, alive and moving.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem D <span class="tag-new">New</span></div>
+    <div class="subsection-title">The Data Avalanche — Live Injection</div>
+    <p>
+      If the frontend parses thousands of incoming WebSocket packets on the main thread, the UI freezes.
+      Socket listening and binary parsing are shifted entirely into a <strong>Web Worker</strong>, using
+      <code>SharedArrayBuffer</code> to hand parsed float arrays back to the main thread without copying.
+    </p>
+    <p>
+      The main thread dynamically expands the <code>InstancedMesh</code> buffer and injects the new points
+      — the galaxy visibly grows in real time as Habeeb's background workers stream compressed vectors in.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem E <span class="tag-new">New</span></div>
+    <div class="subsection-title">Terminal UI Overlay &amp; Reverse Lookup</div>
+    <p>
+      A command-line-style 2D interface sits over the 3D canvas. When the user types a query, it routes to
+      Habeeb's FastAPI Query Expander, triggers the C engine search, and the camera flies to the result
+      cluster.
+    </p>
+    <p>
+      When a <code>doc_id</code> comes back, the UI fetches the human-readable paragraph from the
+      reverse-lookup API and displays it in a glass-morphic overlay panel — completing the loop from
+      user thought, to visual data, to actual text.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="subsection">
+    <div class="subsection-label">Subsystem F <span class="tag-new">New</span></div>
+    <div class="subsection-title">State Reconciliation &amp; Reconnection</div>
+    <p>
+      If the WebSocket drops, the UI doesn't panic — it shows a subtle <em>"Re-establishing Telemetry"</em>
+      indicator and reconnects using exponential backoff.
+    </p>
+    <p>
+      On reconnect, it queries the FastAPI layer for any <code>doc_id</code>s injected while it was offline,
+      pulls the missing vectors, updates the GPU buffer, and flashes the new nodes in — ensuring the visual
+      state mirrors the C engine's mmap vault and its <code>last_safely_synced_doc_id</code> exactly.
+    </p>
+  </div>
+</section>
+
+<!-- ── SALES MECHANICS ─────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">Sales Mechanics <em>— Interactive Demo Triggers</em></h2>
+  </div>
+
+  <p>Three interactive moments designed for live client demos. Each proves a specific engineering claim that cannot be faked by a static slide.</p>
+
+  <div class="feature-grid">
+    <div class="feature-row header">
+      <div class="feature-cell">Feature</div>
+      <div class="feature-cell">What it does</div>
+      <div class="feature-cell">Why it closes</div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-cell"><span class="feature-name">The "Concept" Search</span></div>
+      <div class="feature-cell feature-does">
+        Type something ambiguous — <em>"Cardiovascular failure"</em>. The query gets expanded by a local LLM, embedded, quantized, and the database instantly surfaces documents about "Heart Attacks" even though no words match.
+      </div>
+      <div class="feature-cell feature-sells">
+        Proves the system does <strong>semantic AI search</strong>, not keyword SQL. The gap between what a user types and what they mean is what they're paying for.
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-cell"><span class="feature-name">The Data Avalanche</span></div>
+      <div class="feature-cell feature-does">
+        A button triggers Habeeb's pipeline to quantize and inject <strong>10,000 new vectors live</strong>. The galaxy expands in real time while the search bar remains responsive and the concurrency lock keeps reads clean.
+      </div>
+      <div class="feature-cell feature-sells">
+        Proves the architecture handles <strong>massive write throughput without degrading read latency</strong>. No slide makes this argument as well as watching it happen.
+      </div>
+    </div>
+    <div class="feature-row">
+      <div class="feature-cell"><span class="feature-name">Crash &amp; Resume</span></div>
+      <div class="feature-cell feature-does">
+        Kill the C engine with <code>kill -9</code> mid-stream. Restart it. Watch the Python pipeline send <code>0x03</code>, get back the exact <code>last_safely_synced_doc_id</code>, and resume streaming — the galaxy keeps growing from precisely where it stopped.
+      </div>
+      <div class="feature-cell feature-sells">
+        Proves <strong>zero data loss across a violent crash</strong> without a Write-Ahead Log. For anyone evaluating this as infrastructure, this is the demo that matters most.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── READING LISTS ───────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2 class="section-title">The Master Reading Lists <em>— By Domain</em></h2>
+  </div>
+
+  <p>v2.0 roughly doubles the technical surface area for everyone on the team. Each domain's reading list now mirrors its 7-phase roadmap.</p>
+
+  <div class="owner-pills">
+    <span class="owner-pill dan"><span class="owner-dot"></span>Daniel — C / Systems</span>
+    <span class="owner-pill hab"><span class="owner-dot"></span>Habeeb — AI / Pipeline</span>
+    <span class="owner-pill usa"><span class="owner-dot"></span>Usaamah — WebGL / UI</span>
+  </div>
+
+  <div class="reading-grid">
+
+    <!-- Daniel -->
+    <div class="reading-card">
+      <div class="reading-card-header">
+        <span class="owner-pill dan"><span class="owner-dot"></span>Daniel</span>
+      </div>
+      <div class="reading-card-body">
+        <div class="reading-book">
+          <div class="reading-book-title">Computer Systems: A Programmer's Perspective (CS:APP)</div>
+          <div class="reading-book-author">Bryant &amp; O'Hallaron</div>
+          <div class="reading-book-note">Ch. 3 (data alignment) and Ch. 11 (network programming) — the foundation for the wire protocol and struct layout.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">The Linux Programming Interface (TLPI)</div>
+          <div class="reading-book-author">Michael Kerrisk</div>
+          <div class="reading-book-note">Ch. 4 (file I/O), Ch. 49–50 (mmap &amp; virtual memory), Ch. 56–61 (sockets), Ch. 59 (partial reads, EINTR, EAGAIN) — the spine of Phases 1, 2, 5, and 7.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Linux Kernel Documentation — HugeTLB Pages</div>
+          <div class="reading-book-author">kernel.org</div>
+          <div class="reading-book-note">Configuration and use of 2MB/1GB huge pages with <code>MAP_HUGETLB</code> for TLB-miss reduction during graph traversal.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Product Quantization for Nearest Neighbor Search</div>
+          <div class="reading-book-author">Jégou et al., 2011</div>
+          <div class="reading-book-note">The PQ + ADC math the entire compression layer is built on.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Intel Intrinsics Guide</div>
+          <div class="reading-book-author">Intel</div>
+          <div class="reading-book-note"><code>_mm256_add_ps</code> and gather instructions for the ADC lookup-table kernel.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Efficient and Robust Approximate Nearest Neighbor Search Using HNSW</div>
+          <div class="reading-book-author">Malkov &amp; Yashunin</div>
+          <div class="reading-book-note">Sections 2–3 — Search Layer and Insert algorithm walk-throughs.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Valgrind Documentation</div>
+          <div class="reading-book-author">Valgrind Developers</div>
+          <div class="reading-book-note"><code>memcheck</code> and <code>massif</code> — the zero-leak audit for Phase 5.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Systems Performance: Enterprise and the Cloud</div>
+          <div class="reading-book-author">Brendan Gregg</div>
+          <div class="reading-book-note">Ch. 6 (CPUs and Linux tracing tools) — <code>perf stat</code>/<code>perf record</code> for the Phase 6 profiling pass.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Habeeb -->
+    <div class="reading-card">
+      <div class="reading-card-header">
+        <span class="owner-pill hab"><span class="owner-dot"></span>Habeeb</span>
+      </div>
+      <div class="reading-card-body">
+        <div class="reading-book">
+          <div class="reading-book-title">Designing Data-Intensive Applications (DDIA)</div>
+          <div class="reading-book-author">Martin Kleppmann</div>
+          <div class="reading-book-note">The definitive text for message brokers (RabbitMQ/Kafka), serialization, and fault-tolerant streaming — Ch. 11 covers stream processing, consumer offsets, and fault tolerance directly.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">High Performance Python</div>
+          <div class="reading-book-author">Micha Gorelick &amp; Ian Ozsvald</div>
+          <div class="reading-book-note">Bypassing the GIL, weaponizing NumPy for C-level speed (Ch. 6), <code>multiprocessing</code> and lower-RAM techniques (Ch. 9, 11), and raw TCP sockets.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Natural Language Processing with Transformers</div>
+          <div class="reading-book-author">Tunstall, von Werra &amp; Wolf</div>
+          <div class="reading-book-note">Tokenization limits and 512-token chunking (Ch. 2), plus query-expansion strategies for Concept Search.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">Product Quantization for Nearest Neighbor Search &amp; The FAISS Wiki</div>
+          <div class="reading-book-author">Jégou et al., 2011 / Meta AI</div>
+          <div class="reading-book-note">K-means clustering and codebook generation — <code>IndexIVFPQ</code> and GPU quantizer training in particular.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usaamah -->
+    <div class="reading-card">
+      <div class="reading-card-header">
+        <span class="owner-pill usa"><span class="owner-dot"></span>Usaamah</span>
+      </div>
+      <div class="reading-card-body">
+        <div class="reading-book">
+          <div class="reading-book-title">WebGL Programming Guide</div>
+          <div class="reading-book-author">Kouichi Matsuda &amp; Lea Matsuda</div>
+          <div class="reading-book-note">Raw vertex/fragment shaders, buffer objects, and transformation matrices — the layer beneath Three.js abstractions, needed for instanced rendering and GPU picking.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">High Performance Browser Networking</div>
+          <div class="reading-book-author">Ilya Grigorik</div>
+          <div class="reading-book-note">Ch. 17 (WebSocket) and browser resource allocation — handling Habeeb's high-throughput streams without freezing the tab.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">The Book of Shaders</div>
+          <div class="reading-book-author">Patricio Gonzalez Vivo &amp; Jen Lowe</div>
+          <div class="reading-book-note">GLSL shaping functions and color gradients — the glowing trails and HNSW traversal path animation.</div>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-title">MDN: Web Workers API &amp; SharedArrayBuffer</div>
+          <div class="reading-book-author">Mozilla Developer Network</div>
+          <div class="reading-book-note">Offloading socket parsing from the main thread — the backbone of the Data Avalanche.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── 7-PHASE ROADMAP ─────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">The 7-Phase Roadmap <em>— 14 Weeks</em></h2>
+  </div>
+
+  <p>Each phase is a 2-week block. The structure is deliberate: at the end of every block, Habeeb's Python output plugs directly into Daniel's C engine, and Usaamah's terminal renders the result of that handshake live.</p>
+
+  <div class="owner-pills">
+    <span class="owner-pill dan"><span class="owner-dot"></span>Daniel — C / Systems</span>
+    <span class="owner-pill hab"><span class="owner-dot"></span>Habeeb — AI / Pipeline</span>
+    <span class="owner-pill usa"><span class="owner-dot"></span>Usaamah — WebGL / UI</span>
+  </div>
+
+  <div class="sprint-grid">
+
+    <!-- Phase 1 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">01</span>
+        <span class="phase-title">Dual-Ingestion Architecture &amp; Pipeline Scaffolding</span>
+        <span class="phase-weeks">Weeks 1–2</span>
+        <p class="phase-goal">Stand up offline bootstrap loading and live async TCP/broker plumbing across all three layers — the skeleton everything else attaches to.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li>Write the boot sequence: load the offline binary file straight into memory.</li>
+            <li>Implement <code>epoll</code>/blocking TCP server for background workers.</li>
+            <li>Parse <code>PacketHeader</code> + <code>VectorPayload</code> off the live stream.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>Build the offline embedder (Ray/multiprocessing) over 50K Wikipedia medical articles, chunked to 512-token arrays.</li>
+            <li>Spin up a RabbitMQ consumer daemon for "New Topic" requests.</li>
+            <li>Pack floats into <code>VectorPayload</code> via <code>struct</code>.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Stand up Next.js + a full-bleed, anti-aliased dark-mode WebGL canvas.</li>
+            <li>Write a socket hook/Web Worker for the WebSocket to FastAPI.</li>
+            <li>Verify the handshake with a ping/pong echo.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">02</span>
+        <span class="phase-title">Storage Vault, OS Tuning &amp; Codebook Generation</span>
+        <span class="phase-weeks">Weeks 3–4</span>
+        <p class="phase-goal">Get the mmap vault production-tuned while Habeeb generates the PQ codebook the engine will rely on from Phase 3 onward.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li><code>mmap()</code> the vault; build the pointer-bumping arena allocator.</li>
+            <li><code>madvise(..., MADV_RANDOM)</code> to disable sequential read-ahead.</li>
+            <li>Configure Huge Pages (<code>MAP_HUGETLB</code>) for TLB efficiency.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>Sample 10% of the offline dataset for quantizer training.</li>
+            <li>Split 384D into 48 sub-spaces of 8D; run K-means per sub-space (256 centroids).</li>
+            <li>Export the trained codebook as a binary blob.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Map Habeeb's PCA/t-SNE 3D coordinates into a single <code>Float32Array</code>.</li>
+            <li>Push the array to VRAM; render the static Semantic Galaxy via <code>InstancedMesh</code>.</li>
+            <li>Hold a locked 60 FPS in a single draw call.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">03</span>
+        <span class="phase-title">Product Quantization, ADC &amp; The Quantizer</span>
+        <span class="phase-weeks">Weeks 5–6</span>
+        <p class="phase-goal">Compression goes live on both ends: Daniel builds the lookup-table distance kernel, Habeeb builds the matching compressor.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li>Load the codebook at boot.</li>
+            <li>Build the ADC kernel: per-query centroid distance table, L1-cached.</li>
+            <li>Sum sub-vector distances via AVX-2 gather instructions.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>Write the compression script — nearest centroid per sub-space, floats → 8-bit IDs.</li>
+            <li>Pack codes into <code>PQCodePayload</code>.</li>
+            <li>Verify against the C engine's ADC output as the gold standard.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Implement smooth, damped orbit/pan/zoom camera controls.</li>
+            <li>Begin GPU color-picking: hidden FBO scene with per-point RGB-encoded <code>doc_id</code>s.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">04</span>
+        <span class="phase-title">HNSW Graph, Logarithmic Traversal &amp; Reverse-Lookup</span>
+        <span class="phase-weeks">Weeks 7–8</span>
+        <p class="phase-goal">The graph comes alive on compressed codes, and the frontend gets the service it needs to turn results back into text.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li>Construct Layer 3 → Layer 0 with cache-aligned nodes pointing at PQ codes.</li>
+            <li>Write the <code>O(log N)</code> traversal engine.</li>
+            <li>Wire traversal routing to the ADC metric.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>Build the FastAPI reverse-lookup service (Redis/SQLite): <code>doc_id</code> → text + metadata.</li>
+            <li>Target sub-millisecond retrieval.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Finish GPU color-picking — <code>gl.readPixels</code> → decode <code>doc_id</code> on click.</li>
+            <li>Begin the HNSW traversal visualizer: render the returned path array as glowing animated lines.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">05</span>
+        <span class="phase-title">Stream Hardening &amp; The Concurrency Lock</span>
+        <span class="phase-weeks">Weeks 9–10</span>
+        <p class="phase-goal">Make the live pipeline survive fragmentation, concurrent access, and high throughput without dropping a packet or a frame.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li>Implement a look-ahead packet buffer to reassemble fragmented TCP payloads.</li>
+            <li>Build the RW lock / atomic pointer swap protecting graph nodes during live writes.</li>
+            <li>Run a full Valgrind zero-leak audit.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>Refine the TCP streamer: exponential backoff, <code>EPIPE</code> handling.</li>
+            <li>Run the Avalanche Test — 10,000 vectors streamed live, zero struct tearing.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Move socket listening/parsing into a Web Worker with <code>SharedArrayBuffer</code>.</li>
+            <li>Dynamically expand the <code>InstancedMesh</code> buffer as new points arrive.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 6 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">06</span>
+        <span class="phase-title">Data Avalanche Integration, Query Expansion &amp; Profiling</span>
+        <span class="phase-weeks">Weeks 11–12</span>
+        <p class="phase-goal">Wire the full loop end-to-end and put the hardware under a microscope.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li>Run <code>perf stat</code>/<code>perf record</code> under high concurrency.</li>
+            <li>Analyze L1/L2 cache-miss ratios during HNSW traversal.</li>
+            <li>Realign node layout in memory if misses exceed 5%.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>Build Concept Search query expansion via a local LLM (Llama-3).</li>
+            <li>Broad terms get expanded into specific related terms before embedding.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Build the command bar + glass-morphic data pane.</li>
+            <li>Connect WebGL → FastAPI Query Expander → C Engine → Reverse Lookup → Result Display, end to end.</li>
+            <li>Trigger the live Concept Search demo.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase 7 -->
+    <div class="phase-block">
+      <div class="phase-header">
+        <span class="phase-num">07</span>
+        <span class="phase-title">Fault Tolerance &amp; The Offset Handshake</span>
+        <span class="phase-weeks">Weeks 13–14</span>
+        <p class="phase-goal">Guarantee zero data loss across crashes — the high-water mark closes the loop on the whole system.</p>
+      </div>
+      <div class="phase-tasks">
+        <div class="phase-person">
+          <span class="phase-person-name dan">Daniel</span>
+          <ul>
+            <li>Every 1,000-vector batch: <code>msync(..., MS_SYNC)</code> and update <code>last_safely_synced_doc_id</code> in <code>.meta</code>.</li>
+            <li>Implement opcode <code>0x03</code> to read and return that ID.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name hab">Habeeb</span>
+          <ul>
+            <li>On boot/reconnect, send <code>0x03</code> before any vectors.</li>
+            <li>Drop already-synced entries from the local <code>deque</code> and resume from the returned offset.</li>
+          </ul>
+        </div>
+        <div class="phase-person">
+          <span class="phase-person-name usa">Usaamah</span>
+          <ul>
+            <li>Build the reconnection loop with exponential backoff and a "Re-establishing Telemetry" indicator.</li>
+            <li>On reconnect, query for missed <code>doc_id</code>s, pull them, and flash new nodes into the galaxy.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+</div><!-- /page -->
+
+<!-- ── FOOTER ──────────────────────────────────────────────── -->
+<div class="page">
+<div class="footer">
+  <div class="footer-wordmark">
+    <span>STRATA</span> · Master Architecture Spec · <span class="v2">v2.0</span>
+  </div>
+</div>
+</div>
+
+<!-- ── HERO GRAPH ANIMATION ───────────────────────────────── -->
+<script>
+(function() {
+  const canvas = document.getElementById('graph-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, nodes, edges, t = 0;
+  const NODE_COUNT = 60;
+  const EDGE_DIST  = 140;
+  const PULSE_SPEED = 0.4;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+
+  function rng(min, max) { return min + Math.random() * (max - min); }
+
+  function initGraph() {
+    nodes = [];
+    for (let i = 0; i < NODE_COUNT; i++) {
+      const layer = Math.random() < 0.04 ? 3
+                  : Math.random() < 0.12 ? 2
+                  : Math.random() < 0.28 ? 1 : 0;
+      nodes.push({
+        x: rng(0.08, 0.92),
+        y: rng(0.08, 0.92),
+        vx: rng(-0.00008, 0.00008),
+        vy: rng(-0.00008, 0.00008),
+        layer,
+        r: layer === 3 ? 6 : layer === 2 ? 4.5 : layer === 1 ? 3.5 : 2.5,
+        phase: rng(0, Math.PI * 2),
+      });
+    }
+    edges = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const dx = (nodes[i].x - nodes[j].x) * W;
+        const dy = (nodes[i].y - nodes[j].y) * H;
+        const d  = Math.sqrt(dx*dx + dy*dy);
+        if (d < EDGE_DIST) {
+          edges.push({ a: i, b: j, d });
+        }
+      }
+    }
+  }
+
+  let pulseEdge  = 0;
+  let pulseT     = 0;
+  let pulseTimer = 0;
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    // Pulse timer
+    pulseTimer += 0.016;
+    if (pulseTimer > 1.8) {
+      pulseTimer = 0;
+      pulseEdge  = Math.floor(Math.random() * edges.length);
+      pulseT     = 0;
+    }
+    pulseT += 0.016 * PULSE_SPEED * 2;
+
+    // Draw edges
+    for (let i = 0; i < edges.length; i++) {
+      const e  = edges[i];
+      const na = nodes[e.a];
+      const nb = nodes[e.b];
+      const ax = na.x * W, ay = na.y * H;
+      const bx = nb.x * W, by = nb.y * H;
+
+      const isPulse  = i === pulseEdge;
+      const maxLayer = Math.max(na.layer, nb.layer);
+      const alpha    = isPulse ? 0.55 : (0.04 + maxLayer * 0.04);
+      const color    = maxLayer >= 2 ? `rgba(45,126,255,${alpha})`
+                     : maxLayer === 1 ? `rgba(78,201,176,${alpha})`
+                     : `rgba(255,255,255,${alpha})`;
+
+      ctx.beginPath();
+      ctx.moveTo(ax, ay);
+      ctx.lineTo(bx, by);
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = maxLayer >= 2 ? 0.8 : 0.4;
+      ctx.stroke();
+
+      // Pulse dot
+      if (isPulse && pulseT < 1) {
+        const px = ax + (bx - ax) * pulseT;
+        const py = ay + (by - ay) * pulseT;
+        ctx.beginPath();
+        ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(45,126,255,0.9)';
+        ctx.fill();
+      }
+    }
+
+    // Draw nodes
+    t += 0.01;
+    for (let i = 0; i < nodes.length; i++) {
+      const n  = nodes[i];
+      const nx = n.x * W, ny = n.y * H;
+      const pulse = 1 + 0.12 * Math.sin(t * 1.8 + n.phase);
+
+      // Halo
+      if (n.layer >= 2) {
+        ctx.beginPath();
+        ctx.arc(nx, ny, n.r * pulse * 3, 0, Math.PI * 2);
+        ctx.fillStyle = n.layer === 3 ? 'rgba(45,126,255,0.04)' : 'rgba(45,126,255,0.03)';
+        ctx.fill();
+      }
+
+      // Node
+      ctx.beginPath();
+      ctx.arc(nx, ny, n.r * pulse, 0, Math.PI * 2);
+      const col = n.layer === 3 ? 'rgba(45,126,255,0.95)'
+                : n.layer === 2 ? 'rgba(45,126,255,0.7)'
+                : n.layer === 1 ? 'rgba(78,201,176,0.6)'
+                : 'rgba(255,255,255,0.25)';
+      ctx.fillStyle = col;
+      ctx.fill();
+
+      // Drift
+      n.x += n.vx;
+      n.y += n.vy;
+      if (n.x < 0.02 || n.x > 0.98) n.vx *= -1;
+      if (n.y < 0.02 || n.y > 0.98) n.vy *= -1;
+    }
+  }
+
+  function loop() {
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener('resize', () => { resize(); initGraph(); });
+  resize();
+  initGraph();
+  loop();
+})();
+</script>
+
+</body>
+</html>
