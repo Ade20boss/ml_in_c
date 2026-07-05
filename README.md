@@ -86,7 +86,7 @@ a *generalized* system that works for any architecture.
 - **`Nn_randomize`** — initialize all weights and biases across the whole network.
 
 **Structure:** Kestrel is a single-header library — `kestrel.h` holds declarations up top
-and the implementation guarded by `#ifdef KESTREL_CODE` (the stb/Tsoding pattern);
+and the implementation guarded by `#ifdef KESTREL_CODE` (the stb);
 `kestrel.c` defines `KESTREL_CODE`, includes the header, and drives the demo.
 
 ---
