@@ -17,6 +17,11 @@
 
 #define MATRIX_PRINT(m) print_matrix(m, #m)
 #define MAT_POS(m, r, c) ((m).es[(r) * (m).stride + (c)])
+#define ARRAY_LEN(array) sizeof(array) / sizeof(array[0])
+
+float rand_float(void);
+float sigmoid(float value);
+
 
 typedef struct
 {
@@ -40,7 +45,6 @@ typedef struct
 
 } matrix;
 
-
 matrix matrix_allocate(Chunk_memory *arena, size_t rows, size_t cols);
 void matrix_randomize(matrix matrix, float low, float high);
 void matrix_fill(matrix matrix, float value);
@@ -51,8 +55,23 @@ matrix column_matricize(matrix matrix, size_t col_num);
 void matrix_copy(matrix destination, matrix source);
 void matrix_sum(matrix destination, matrix source);
 void print_matrix(matrix matrix, const char *name);
-float rand_float(void);
-float sigmoid(float value);
+
+
+typedef struct
+{
+    size_t count;
+    matrix *weights;
+    matrix *biases;
+    matrix *inputs; // The amount of outputs + 1(original input)
+} Neural_network;
+
+
+Neural_network nn_allocate(size_t *architecture, size_t arch_count, Chunk_memory *arena);
+void print_Nn(Neural_network nn, const char *name);
+#define NN_PRINT(nn) print_Nn(nn, #nn)
+
+void Nn_randomize(Neural_network nn, float low, float high);
+void Nn_forward_pass(Neural_network nn);
 
 
 #endif //KESTREL_H_
@@ -225,7 +244,7 @@ void matrix_sum_bias(matrix destination, matrix source)
 
 void print_matrix(matrix m, const char *name)
 {
-    printf("%s = {", name);
+    printf("%s", name);
     printf("\n");
     for (size_t i = 0; i < m.rows; i++)
     {
@@ -241,8 +260,6 @@ void print_matrix(matrix m, const char *name)
         }
         printf("]\n");
     }
-
-    printf("}\n\n");
 }
 
 
@@ -275,5 +292,70 @@ void matrix_activate(matrix matrix)
     }
 }
 
+
+Neural_network nn_allocate(size_t *architecture, size_t arch_count, Chunk_memory *arena)
+{
+    KESTREL_ASSERT(arch_count > 1);
+    Neural_network nn;
+    nn.count = arch_count - 1;
+
+    nn.weights = custom_alloc(sizeof(*nn.weights) * nn.count, arena);
+    KESTREL_ASSERT(nn.weights != NULL);
+
+    nn.biases = custom_alloc(sizeof(*nn.biases) * nn.count, arena);
+    KESTREL_ASSERT(nn.biases != NULL);
+
+    nn.inputs = custom_alloc(sizeof(*nn.inputs) * (nn.count + 1), arena);
+    KESTREL_ASSERT(nn.inputs != NULL);
+
+    for (size_t i = 0; i < arch_count; i++)
+    {
+        nn.inputs[i] = matrix_allocate(arena, 1, architecture[i]);
+    }
+
+    for (size_t i = 0; i < nn.count; i++)
+    {
+        nn.weights[i] = matrix_allocate(arena, nn.inputs[i].cols, architecture[i + 1]);
+        nn.biases[i] = matrix_allocate(arena, 1, architecture[i + 1]);
+    }
+
+    return nn;
+}
+
+void print_Nn(Neural_network nn, const char *name)
+{
+    printf("%s = [\n\n", name);
+
+    for (size_t i = 0; i < nn.count; i++)
+    {
+        printf("LAYER %zu:\n", i + 1);
+        printf("    ");
+        print_matrix(nn.weights[i], "weights");
+        printf("\n\n");
+        printf("    ");
+        print_matrix(nn.biases[i], "biases");
+        printf("\n\n");
+    }
+    printf("]\n");
+}
+
+void Nn_randomize(Neural_network nn, float low, float high)
+{
+    for (size_t i = 0; i < nn.count; i++)
+    {
+        matrix_randomize(nn.weights[i], low, high);
+        matrix_randomize(nn.biases[i], low, high);
+    }
+}
+
+void Nn_forward_pass(Neural_network nn)
+{
+    for (size_t i = 0; i < nn.count; i++)
+    {
+        matrix_dotproduct(nn.inputs[i + 1], nn.inputs[i], nn.weights[i]);
+        matrix_sum_bias(nn.inputs[i + 1], nn.biases[i]);
+        matrix_activate(nn.inputs[i + 1]);
+    }
+}
 
 #endif //KESTREL_CODE

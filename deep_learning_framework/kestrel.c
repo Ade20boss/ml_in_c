@@ -8,8 +8,9 @@ typedef struct
 {
     matrix layer1_inputs;  // (1 × 2)  — one pair, 2 input numbers
     matrix layer1_weights; // (2 × 2)  — rows=inputs(2), cols=hidden neurons(2); does NOT depend on how many pairs
-    matrix layer1_outputs; // (1 × 2)  — one pair's result, 2 hidden neuron outputs
     matrix layer1_biases;  // (2 × 1)  — one bias per hidden neuron (column vector)
+    matrix layer1_outputs; // (1 × 2)  — one pair's result, 2 hidden neuron outputs
+
     matrix layer2_weights; // (2 × 1)  — rows=hidden inputs(2), cols=output neuron(1)
     matrix layer2_biases;  // (1 × 1)  — one bias for the single output neuron
     matrix layer2_outputs; // (1 × 1)  — one pair's final output (1 number)
@@ -26,6 +27,24 @@ float *forward_pass(Xor * xor)
     matrix_sum_bias(xor->layer2_outputs, xor->layer2_biases);
     matrix_activate(xor->layer2_outputs);
     return xor->layer2_outputs.es;
+}
+
+Xor xor_allocate(void)
+{
+    Xor xor ;
+    xor.layer1_inputs = matrix_allocate(&arena, 1, 2);  // one pair × 2 inputs
+    xor.layer1_weights = matrix_allocate(&arena, 2, 2); // 2 inputs × 2 hidden neurons (col = neuron)
+    xor.layer1_outputs = matrix_allocate(&arena, 1, 2); // one pair × 2 hidden neuron outputs
+
+    xor.layer1_biases = matrix_allocate(&arena, 1, 2); // row now, 1 bias per hidden neuron
+
+    xor.layer2_weights = matrix_allocate(&arena, 2, 1); // 2 hidden inputs × 1 output neuron (col = neuron)
+
+    xor.layer2_biases = matrix_allocate(&arena, 1, 1); // 1 output neuron × 1 (column vector)
+
+    xor.layer2_outputs = matrix_allocate(&arena, 1, 1); // one pair × 1 output neuron
+
+    return xor;
 }
 
 float cost(Xor model, matrix inputs, matrix outputs)
@@ -53,44 +72,205 @@ float cost(Xor model, matrix inputs, matrix outputs)
     return total_cost;
 }
 
+void finite_difference(Xor xor, Xor gradient, float epsilon, matrix inputs, matrix outputs)
+{
+    float saved;
+
+    float c = cost(xor, inputs, outputs);
+    for (size_t i = 0; i < xor.layer1_weights.rows; i++)
+    {
+        for (size_t j = 0; j < xor.layer1_weights.cols; j++)
+        {
+            saved = MAT_POS(xor.layer1_weights, i, j);
+
+            MAT_POS(xor.layer1_weights, i, j) += epsilon;
+
+            MAT_POS(gradient.layer1_weights, i, j) = (cost(xor, inputs, outputs) - c) / epsilon;
+
+            MAT_POS(xor.layer1_weights, i, j) = saved;
+        }
+    }
+
+    for (size_t i = 0; i < xor.layer1_biases.rows; i++)
+    {
+        for (size_t j = 0; j < xor.layer1_biases.cols; j++)
+        {
+            saved = MAT_POS(xor.layer1_biases, i, j);
+
+            MAT_POS(xor.layer1_biases, i, j) += epsilon;
+
+            MAT_POS(gradient.layer1_biases, i, j) = (cost(xor, inputs, outputs) - c) / epsilon;
+
+            MAT_POS(xor.layer1_biases, i, j) = saved;
+        }
+    }
+
+
+    for (size_t i = 0; i < xor.layer2_weights.rows; i++)
+    {
+        for (size_t j = 0; j < xor.layer2_weights.cols; j++)
+        {
+            saved = MAT_POS(xor.layer2_weights, i, j);
+
+            MAT_POS(xor.layer2_weights, i, j) += epsilon;
+
+            MAT_POS(gradient.layer2_weights, i, j) = (cost(xor, inputs, outputs) - c) / epsilon;
+
+            MAT_POS(xor.layer2_weights, i, j) = saved;
+        }
+    }
+
+    for (size_t i = 0; i < xor.layer2_biases.rows; i++)
+    {
+        for (size_t j = 0; j < xor.layer2_biases.cols; j++)
+        {
+            saved = MAT_POS(xor.layer2_biases, i, j);
+
+            MAT_POS(xor.layer2_biases, i, j) += epsilon;
+
+            MAT_POS(gradient.layer2_biases, i, j) = (cost(xor, inputs, outputs) - c) / epsilon;
+
+            MAT_POS(xor.layer2_biases, i, j) = saved;
+        }
+    }
+}
+
+void learn(Xor m, Xor g, float rate)
+{
+    for (size_t i = 0; i < m.layer1_weights.rows; i++)
+    {
+        for (size_t j = 0; j < m.layer1_weights.cols; j++)
+        {
+            MAT_POS(m.layer1_weights, i, j) -= rate * MAT_POS(g.layer1_weights, i, j);
+        }
+    }
+
+    for (size_t i = 0; i < m.layer1_biases.rows; i++)
+    {
+        for (size_t j = 0; j < m.layer1_biases.cols; j++)
+        {
+            MAT_POS(m.layer1_biases, i, j) -= rate * MAT_POS(g.layer1_biases, i, j);
+        }
+    }
+
+    for (size_t i = 0; i < m.layer2_weights.rows; i++)
+    {
+        for (size_t j = 0; j < m.layer2_weights.cols; j++)
+        {
+            MAT_POS(m.layer2_weights, i, j) -= rate * MAT_POS(g.layer2_weights, i, j);
+        }
+    }
+
+    for (size_t i = 0; i < m.layer2_biases.rows; i++)
+    {
+        for (size_t j = 0; j < m.layer2_biases.cols; j++)
+        {
+            MAT_POS(m.layer2_biases, i, j) -= rate * MAT_POS(g.layer2_biases, i, j);
+        }
+    }
+}
+
+int classifier_xor(Xor * xor)
+{
+    for (size_t i = 0; i < xor->layer2_outputs.rows; i++)
+    {
+        for (size_t j = 0; j < xor->layer2_outputs.cols; j++)
+        {
+            if (MAT_POS(xor->layer2_outputs, i, j) >= 0.5)
+            {
+                return 1;
+            }
+
+            else
+            {
+                return 0;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+float data[] = {
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    1,
+    0,
+};
+
 
 int main(void)
 {
+
+
     arena_init(&arena);
     srand(time(0));
-    Xor xor ;
-    xor.layer1_inputs = matrix_allocate(&arena, 1, 2);  // one pair × 2 inputs
-    xor.layer1_weights = matrix_allocate(&arena, 2, 2); // 2 inputs × 2 hidden neurons (col = neuron)
-    xor.layer1_outputs = matrix_allocate(&arena, 1, 2); // one pair × 2 hidden neuron outputs
+    size_t arch[] = {2, 2, 1};
+    Neural_network test = nn_allocate(arch, ARRAY_LEN(arch), &arena);
+    Nn_randomize(test, 0, 1);
+    NN_PRINT(test);
 
-    xor.layer1_biases = matrix_allocate(&arena, 1, 2); // row now, 1 bias per hidden neuron
+    return 0;
 
-    xor.layer2_weights = matrix_allocate(&arena, 2, 1); // 2 hidden inputs × 1 output neuron (col = neuron)
 
-    xor.layer2_biases = matrix_allocate(&arena, 1, 1); // 1 output neuron × 1 (column vector)
+    size_t stride = 3;
+    size_t n = sizeof(data) / sizeof(data[0]) / stride;
 
-    xor.layer2_outputs = matrix_allocate(&arena, 1, 1); // one pair × 1 output neuron
+    matrix data_inputs = {.rows = n, .cols = 2, .stride = stride, .es = data};
+
+    matrix data_outputs = {.rows = n, .cols = 1, .stride = stride, .es = &data[2]};
+
+    MATRIX_PRINT(data_inputs);
+    MATRIX_PRINT(data_outputs);
+
+
+    Xor xor = xor_allocate();
+    Xor gradient = xor_allocate();
+
     matrix_randomize(xor.layer1_weights, 0, 1);
     matrix_randomize(xor.layer1_biases, 0, 1);
     matrix_randomize(xor.layer2_weights, 0, 1);
     matrix_randomize(xor.layer2_biases, 0, 1);
-    MATRIX_PRINT(xor.layer1_weights);
-    MATRIX_PRINT(xor.layer1_biases);
-    MATRIX_PRINT(xor.layer2_weights);
-    MATRIX_PRINT(xor.layer2_biases);
 
-    // --- load ONE pair into the 1×2 input ---
-    // a 1×2 input only holds a single pair. this is the exact spot where your
-    // training loop will later swap in each of the 4 pairs, one per forward pass.
-    xor.layer1_inputs.es[0] = 1; // first number of the pair
-    xor.layer1_inputs.es[1] = 0; // second number of the pair
-    // (network is untrained here, so the output is just whatever the random weights give)
+    float eps = 1.0e-1;
+    float rate = 1.0e-1;
 
-    float *outputs = forward_pass(&xor);
+    printf("Cost = %f\n", cost(xor, data_inputs, data_outputs));
+    for (size_t i = 0; i < 100000; i++)
+    {
+        finite_difference(xor, gradient, eps, data_inputs, data_outputs);
+        learn(xor, gradient, rate);
+        printf("Cost = %f\n", cost(xor, data_inputs, data_outputs));
+    }
 
-    // one pair in -> one output out (layer2_outputs is 1×1)
-    // once you loop over pairs, you'll print one of these per pass instead.
-    printf("Output: %f\n", outputs[0]);
+    printf("-----------------------------------------------\n");
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        matrix input = row_matricize(data_inputs, i);
+        matrix expected_output = row_matricize(data_outputs, i);
+        matrix_copy(xor.layer1_inputs, input);
+
+        forward_pass(&xor);
+
+        int y = classifier_xor(&xor);
+
+
+        MATRIX_PRINT(input);
+        printf("   ");
+        printf("%d", y);
+        printf("\n\n");
+    }
+
 
     custom_free(&arena);
     return 0;
