@@ -214,13 +214,6 @@ int main(void)
 
     arena_init(&arena);
     srand(time(0));
-    size_t arch[] = {2, 2, 1};
-    Neural_network test = nn_allocate(arch, ARRAY_LEN(arch), &arena);
-    Nn_randomize(test, 0, 1);
-    NN_PRINT(test);
-
-    return 0;
-
 
     size_t stride = 3;
     size_t n = sizeof(data) / sizeof(data[0]) / stride;
@@ -232,46 +225,61 @@ int main(void)
     MATRIX_PRINT(data_inputs);
     MATRIX_PRINT(data_outputs);
 
+    size_t arch[] = {2, 2, 1};
+    Neural_network test = nn_allocate(arch, ARRAY_LEN(arch), &arena);
+    Nn_randomize(test, 0, 1);
+    NN_PRINT(test);
 
-    Xor xor = xor_allocate();
-    Xor gradient = xor_allocate();
-
-    matrix_randomize(xor.layer1_weights, 0, 1);
-    matrix_randomize(xor.layer1_biases, 0, 1);
-    matrix_randomize(xor.layer2_weights, 0, 1);
-    matrix_randomize(xor.layer2_biases, 0, 1);
-
-    float eps = 1.0e-1;
-    float rate = 1.0e-1;
-
-    printf("Cost = %f\n", cost(xor, data_inputs, data_outputs));
-    for (size_t i = 0; i < 100000; i++)
-    {
-        finite_difference(xor, gradient, eps, data_inputs, data_outputs);
-        learn(xor, gradient, rate);
-        printf("Cost = %f\n", cost(xor, data_inputs, data_outputs));
-    }
-
-    printf("-----------------------------------------------\n");
-
-    for (size_t i = 0; i < 4; i++)
-    {
-        matrix input = row_matricize(data_inputs, i);
-        matrix expected_output = row_matricize(data_outputs, i);
-        matrix_copy(xor.layer1_inputs, input);
-
-        forward_pass(&xor);
-
-        int y = classifier_xor(&xor);
+    printf("%f", nn_cost(test, data_inputs, data_outputs));
 
 
-        MATRIX_PRINT(input);
-        printf("   ");
-        printf("%d", y);
-        printf("\n\n");
-    }
-
+    // matrix_copy(NN_INPUT(test), row_matricize(data_inputs, 1));
+    // Nn_forward_pass(test);
+    // MATRIX_PRINT(NN_OUTPUT(test));
 
     custom_free(&arena);
     return 0;
+    custom_free(&arena);
+
+
+    // Xor xor = xor_allocate();
+    // Xor gradient = xor_allocate();
+
+    // matrix_randomize(xor.layer1_weights, 0, 1);
+    // matrix_randomize(xor.layer1_biases, 0, 1);
+    // matrix_randomize(xor.layer2_weights, 0, 1);
+    // matrix_randomize(xor.layer2_biases, 0, 1);
+
+    // float eps = 1.0e-1;
+    // float rate = 1.0e-1;
+
+    // printf("Cost = %f\n", cost(xor, data_inputs, data_outputs));
+    // for (size_t i = 0; i < 100000; i++)
+    // {
+    //     finite_difference(xor, gradient, eps, data_inputs, data_outputs);
+    //     learn(xor, gradient, rate);
+    //     printf("Cost = %f\n", cost(xor, data_inputs, data_outputs));
+    // }
+
+    // printf("-----------------------------------------------\n");
+
+    // for (size_t i = 0; i < 4; i++)
+    // {
+    //     matrix input = row_matricize(data_inputs, i);
+    //     matrix expected_output = row_matricize(data_outputs, i);
+    //     matrix_copy(xor.layer1_inputs, input);
+
+    //     forward_pass(&xor);
+
+    //     int y = classifier_xor(&xor);
+
+
+    //     MATRIX_PRINT(input);
+    //     printf("   ");
+    //     printf("%d", y);
+    //     printf("\n\n");
+    // }
+
+
+    // return 0;
 }

@@ -69,9 +69,13 @@ typedef struct
 Neural_network nn_allocate(size_t *architecture, size_t arch_count, Chunk_memory *arena);
 void print_Nn(Neural_network nn, const char *name);
 #define NN_PRINT(nn) print_Nn(nn, #nn)
+#define NN_INPUT(nn) (nn).inputs[0]
+#define NN_OUTPUT(nn) (nn).inputs[(nn).count]
 
 void Nn_randomize(Neural_network nn, float low, float high);
 void Nn_forward_pass(Neural_network nn);
+float nn_cost(Neural_network nn, matrix inputs, matrix outputs);
+void nn_fdiff(Neural_network nn, Neural_network gradient, float epsilon, matrix inputs, matrix outputs);
 
 
 #endif //KESTREL_H_
@@ -357,5 +361,53 @@ void Nn_forward_pass(Neural_network nn)
         matrix_activate(nn.inputs[i + 1]);
     }
 }
+
+
+float nn_cost(Neural_network nn, matrix inputs, matrix outputs)
+{
+    KESTREL_ASSERT(inputs.rows == outputs.rows);
+    KESTREL_ASSERT(NN_OUTPUT(nn).rows == 1);
+    KESTREL_ASSERT(NN_OUTPUT(nn).cols == outputs.cols);
+
+    float total_cost = 0.0f;
+
+    for (size_t i = 0; i < inputs.rows; i++)
+    {
+        matrix train_input = row_matricize(inputs, i);
+        matrix train_output = row_matricize(outputs, i);
+        matrix_copy(NN_INPUT(nn), train_input);
+
+        Nn_forward_pass(nn);
+
+        for (size_t j = 0; j < train_output.cols; j++)
+        {
+            float difference = MAT_POS(NN_OUTPUT(nn), 0, j) - MAT_POS(train_output, 0, j);
+            total_cost += (difference * difference);
+        }
+    }
+    total_cost /= inputs.rows;
+    return total_cost;
+}
+
+
+// void nn_fdiff(Neural_network nn, Neural_network gradient, float epsilon, matrix inputs, matrix outputs)
+// {
+//     for (size_t i = 0; i < nn.count; i++)
+//     {
+//         for (size_t j = 0; j < nn.weights[i].rows; j++)
+//         {
+//             for (size_t k = 0; k < nn.weights[i].cols; j++)
+//             {
+//                 saved = MAT_POS(nn.weights[i], i, j);
+
+//                 MAT_POS(nn.weights[i], i, j) += epsilon;
+
+//                 MAT_POS(gradient.weights[i], i, j) = (cost(xor, inputs, outputs) - c) / epsilon;
+
+//                 MAT_POS(xor.layer1_weights, i, j) = saved;
+//             }
+//         }
+//     }
+// }
 
 #endif //KESTREL_CODE
