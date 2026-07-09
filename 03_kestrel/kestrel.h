@@ -77,6 +77,7 @@ void nn_fdiff(Neural_network *nn, Neural_network *gradient, float epsilon, matri
 void nn_learn(Neural_network *nn, Neural_network *gradient, float rate);
 void gradient_descent(Neural_network *nn,
                       Neural_network *gradient,
+                      Neural_network *best_model,
                       float eps,
                       matrix inputs,
                       matrix outputs,
@@ -369,7 +370,7 @@ void Nn_forward_pass(Neural_network *nn)
 }
 
 
-float nn_cost(Neural_network *nn, matrix inputs, matrix outputs)
+double nn_cost(Neural_network *nn, matrix inputs, matrix outputs)
 {
     KESTREL_ASSERT(inputs.rows == outputs.rows);
     KESTREL_ASSERT(NN_OUTPUT(nn).rows == 1);
@@ -455,26 +456,83 @@ void nn_learn(Neural_network *nn, Neural_network *gradient, float rate)
     }
 }
 
+int NN_compare(Neural_network *a, Neural_network *b)
+{
+    if (a->count != b->count)
+    {
+        return 1;
+    }
+
+    for (size_t i = 0; i < a->count + 1; i++)
+    {
+        if ((a->inputs[i].rows != b->inputs[i].rows) || (a->inputs[i].cols != b->inputs[i].cols))
+        {
+            return 1;
+        }
+    }
+
+    for (size_t j = 0; j < a->count; j++)
+    {
+        if ((a->weights[j].rows != b->weights[j].rows) || (a->weights[j].cols != b->weights[j].cols))
+        {
+            return 1;
+        }
+
+        if ((a->biases[j].rows != b->biases[j].rows) || (a->biases[j].cols != b->biases[j].cols))
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void NN_copy(Neural_network *destination, Neural_network *source)
+{
+    KESTREL_ASSERT(NN_compare(destination, source) == 0);
+    for (size_t j = 0; j < destination->count; j++)
+    {
+        matrix_copy(destination->weights[j], source->weights[j]);
+        matrix_copy(destination->biases[j], source->biases[j]);
+    }
+}
+
 void gradient_descent(Neural_network *nn,
                       Neural_network *gradient,
+                      Neural_network *best_model,
                       float eps,
                       matrix inputs,
                       matrix outputs,
                       float rate,
                       size_t iterations,
                       size_t checkpoints)
+
 {
+    print_Nn(nn, "Untrained network");
+    double best_cost = INFINITY;
     for (size_t i = 0; i < iterations; i++)
     {
         nn_fdiff(nn, gradient, eps, inputs, outputs);
         nn_learn(nn, gradient, rate);
+        double new_cost = nn_cost(nn, inputs, outputs);
+
+        if (new_cost < best_cost)
+        {
+            best_cost = new_cost;
+            NN_copy(best_model, nn);
+        }
 
         if (i % checkpoints == 0)
         {
-            printf("iteration_no: %zu   cost: %f\n", i, nn_cost(nn, inputs, outputs));
+            printf("iteration_no: %zu   cost: %f\n", i, new_cost);
         }
     }
-    printf("FINAL COST: %lf\n\n", nn_cost(nn, inputs, outputs));
+    printf("FINAL COST: %lf\n", nn_cost(nn, inputs, outputs));
+    printf("\n\n\n");
+    printf("BEST MODEL COST: %lf\n", nn_cost(best_model, inputs, outputs));
+
+    print_Nn(best_model, "Trained network");
+    printf("\n\n\n");
 }
 
 
