@@ -531,7 +531,7 @@ void gradient_descent(Neural_network *nn,
     printf("\n\n\n");
     printf("BEST MODEL COST: %lf\n", nn_cost(best_model, inputs, outputs));
 
-    print_Nn(best_model, "Trained network");
+    print_Nn(best_model, "BEST MODEL");
     printf("\n\n\n");
 }
 
