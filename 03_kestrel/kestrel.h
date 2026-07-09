@@ -51,9 +51,7 @@ void matrix_fill(matrix matrix, float value);
 void matrix_dotproduct(matrix destination, matrix source_a, matrix source_b);
 void matrix_activate(matrix matrix);
 matrix row_matricize(matrix matrix, size_t row_num);
-matrix column_matricize(matrix matrix, size_t col_num);
 void matrix_copy(matrix destination, matrix source);
-void matrix_sum(matrix destination, matrix source);
 void print_matrix(matrix matrix, const char *name);
 
 
@@ -67,16 +65,24 @@ typedef struct
 
 
 Neural_network nn_allocate(size_t *architecture, size_t arch_count, Chunk_memory *arena);
-void print_Nn(Neural_network nn, const char *name);
-#define NN_PRINT(nn) print_Nn(nn, #nn)
-#define NN_INPUT(nn) (nn).inputs[0]
-#define NN_OUTPUT(nn) (nn).inputs[(nn).count]
+void print_Nn(Neural_network *nn, const char *name);
+#define NN_PRINT(nn) print_Nn(&nn, #nn)
+#define NN_INPUT(nn) (nn)->inputs[0]
+#define NN_OUTPUT(nn) (nn)->inputs[(nn)->count]
 
-void Nn_randomize(Neural_network nn, float low, float high);
-void Nn_forward_pass(Neural_network nn);
-float nn_cost(Neural_network nn, matrix inputs, matrix outputs);
-void nn_fdiff(Neural_network nn, Neural_network gradient, float epsilon, matrix inputs, matrix outputs);
-
+void Nn_randomize(Neural_network *nn, float low, float high);
+void Nn_forward_pass(Neural_network *nn);
+double nn_cost(Neural_network *nn, matrix inputs, matrix outputs);
+void nn_fdiff(Neural_network *nn, Neural_network *gradient, float epsilon, matrix inputs, matrix outputs);
+void nn_learn(Neural_network *nn, Neural_network *gradient, float rate);
+void gradient_descent(Neural_network *nn,
+                      Neural_network *gradient,
+                      float eps,
+                      matrix inputs,
+                      matrix outputs,
+                      float rate,
+                      size_t iterations,
+                      size_t checkpoints);
 
 #endif //KESTREL_H_
 
@@ -326,50 +332,50 @@ Neural_network nn_allocate(size_t *architecture, size_t arch_count, Chunk_memory
     return nn;
 }
 
-void print_Nn(Neural_network nn, const char *name)
+void print_Nn(Neural_network *nn, const char *name)
 {
     printf("%s = [\n\n", name);
 
-    for (size_t i = 0; i < nn.count; i++)
+    for (size_t i = 0; i < nn->count; i++)
     {
         printf("LAYER %zu:\n", i + 1);
         printf("    ");
-        print_matrix(nn.weights[i], "weights");
+        print_matrix(nn->weights[i], "weights");
         printf("\n\n");
         printf("    ");
-        print_matrix(nn.biases[i], "biases");
+        print_matrix(nn->biases[i], "biases");
         printf("\n\n");
     }
     printf("]\n");
 }
 
-void Nn_randomize(Neural_network nn, float low, float high)
+void Nn_randomize(Neural_network *nn, float low, float high)
 {
-    for (size_t i = 0; i < nn.count; i++)
+    for (size_t i = 0; i < nn->count; i++)
     {
-        matrix_randomize(nn.weights[i], low, high);
-        matrix_randomize(nn.biases[i], low, high);
+        matrix_randomize(nn->weights[i], low, high);
+        matrix_randomize(nn->biases[i], low, high);
     }
 }
 
-void Nn_forward_pass(Neural_network nn)
+void Nn_forward_pass(Neural_network *nn)
 {
-    for (size_t i = 0; i < nn.count; i++)
+    for (size_t i = 0; i < nn->count; i++)
     {
-        matrix_dotproduct(nn.inputs[i + 1], nn.inputs[i], nn.weights[i]);
-        matrix_sum_bias(nn.inputs[i + 1], nn.biases[i]);
-        matrix_activate(nn.inputs[i + 1]);
+        matrix_dotproduct(nn->inputs[i + 1], nn->inputs[i], nn->weights[i]);
+        matrix_sum_bias(nn->inputs[i + 1], nn->biases[i]);
+        matrix_activate(nn->inputs[i + 1]);
     }
 }
 
 
-float nn_cost(Neural_network nn, matrix inputs, matrix outputs)
+float nn_cost(Neural_network *nn, matrix inputs, matrix outputs)
 {
     KESTREL_ASSERT(inputs.rows == outputs.rows);
     KESTREL_ASSERT(NN_OUTPUT(nn).rows == 1);
     KESTREL_ASSERT(NN_OUTPUT(nn).cols == outputs.cols);
 
-    float total_cost = 0.0f;
+    double total_cost = 0.0f;
 
     for (size_t i = 0; i < inputs.rows; i++)
     {
@@ -390,24 +396,86 @@ float nn_cost(Neural_network nn, matrix inputs, matrix outputs)
 }
 
 
-// void nn_fdiff(Neural_network nn, Neural_network gradient, float epsilon, matrix inputs, matrix outputs)
-// {
-//     for (size_t i = 0; i < nn.count; i++)
-//     {
-//         for (size_t j = 0; j < nn.weights[i].rows; j++)
-//         {
-//             for (size_t k = 0; k < nn.weights[i].cols; j++)
-//             {
-//                 saved = MAT_POS(nn.weights[i], i, j);
+void nn_fdiff(Neural_network *nn, Neural_network *gradient, float epsilon, matrix inputs, matrix outputs)
+{
 
-//                 MAT_POS(nn.weights[i], i, j) += epsilon;
+    float saved;
+    double c = nn_cost(nn, inputs, outputs);
+    for (size_t i = 0; i < nn->count; i++)
+    {
+        for (size_t j = 0; j < nn->weights[i].rows; j++)
+        {
+            for (size_t k = 0; k < nn->weights[i].cols; k++)
+            {
+                saved = MAT_POS(nn->weights[i], j, k);
 
-//                 MAT_POS(gradient.weights[i], i, j) = (cost(xor, inputs, outputs) - c) / epsilon;
+                MAT_POS(nn->weights[i], j, k) += epsilon;
 
-//                 MAT_POS(xor.layer1_weights, i, j) = saved;
-//             }
-//         }
-//     }
-// }
+                MAT_POS(gradient->weights[i], j, k) = (nn_cost(nn, inputs, outputs) - c) / epsilon;
+
+                MAT_POS(nn->weights[i], j, k) = saved;
+            }
+        }
+
+        for (size_t j = 0; j < nn->biases[i].rows; j++)
+        {
+            for (size_t k = 0; k < nn->biases[i].cols; k++)
+            {
+                saved = MAT_POS(nn->biases[i], j, k);
+
+                MAT_POS(nn->biases[i], j, k) += epsilon;
+
+                MAT_POS(gradient->biases[i], j, k) = (nn_cost(nn, inputs, outputs) - c) / epsilon;
+
+                MAT_POS(nn->biases[i], j, k) = saved;
+            }
+        }
+    }
+}
+
+void nn_learn(Neural_network *nn, Neural_network *gradient, float rate)
+{
+    for (size_t i = 0; i < nn->count; i++)
+    {
+        for (size_t j = 0; j < nn->weights[i].rows; j++)
+        {
+            for (size_t k = 0; k < nn->weights[i].cols; k++)
+            {
+                MAT_POS(nn->weights[i], j, k) -= rate * MAT_POS(gradient->weights[i], j, k);
+            }
+        }
+
+        for (size_t j = 0; j < nn->biases[i].rows; j++)
+        {
+            for (size_t k = 0; k < nn->biases[i].cols; k++)
+            {
+                MAT_POS(nn->biases[i], j, k) -= rate * MAT_POS(gradient->biases[i], j, k);
+            }
+        }
+    }
+}
+
+void gradient_descent(Neural_network *nn,
+                      Neural_network *gradient,
+                      float eps,
+                      matrix inputs,
+                      matrix outputs,
+                      float rate,
+                      size_t iterations,
+                      size_t checkpoints)
+{
+    for (size_t i = 0; i < iterations; i++)
+    {
+        nn_fdiff(nn, gradient, eps, inputs, outputs);
+        nn_learn(nn, gradient, rate);
+
+        if (i % checkpoints == 0)
+        {
+            printf("iteration_no: %zu   cost: %f\n", i, nn_cost(nn, inputs, outputs));
+        }
+    }
+    printf("FINAL COST: %lf\n\n", nn_cost(nn, inputs, outputs));
+}
+
 
 #endif //KESTREL_CODE
